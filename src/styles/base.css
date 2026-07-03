@@ -143,6 +143,13 @@ h3 {
   box-shadow: var(--shadow-md);
 }
 
+/* Card titles keep one visual size regardless of heading level (h2/h3),
+   so the document outline stays correct without changing the look. */
+.card :where(h2, h3) {
+  font-size: var(--step-1);
+  letter-spacing: normal;
+}
+
 .tag {
   display: inline-block;
   padding: 0.1rem 0.55rem;

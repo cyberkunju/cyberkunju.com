@@ -26,7 +26,7 @@ const projects = (await getCollection('projects', ({ data }) => !data.draft)).so
           <li>
             <a class="card" href={`/projects/${p.id}`}>
               <span class="eyebrow">{p.data.role}</span>
-              <h3>{p.data.title}</h3>
+              <h2>{p.data.title}</h2>
               <p class="muted">{p.data.summary}</p>
               <span class="cluster" style="margin-block-start: var(--space-xs);">
                 {p.data.tags.slice(0, 5).map((t) => (
