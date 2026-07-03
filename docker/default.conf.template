@@ -7,6 +7,9 @@
 # only to devices whose cku_access cookie carries the secret token, which nginx
 # sets after the correct PIN path is hit.
 
+# The token is a long random string; enlarge the map bucket to fit it.
+map_hash_bucket_size 128;
+
 map $cookie_cku_access $cku_unlocked {
     default 0;
     "${GATE_TOKEN}" 1;
