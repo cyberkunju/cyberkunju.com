@@ -4,17 +4,21 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex, nofollow" />
-    <meta name="theme-color" content="#0b0c0e" />
+    <meta name="theme-color" content="#0a0b0d" />
     <title>cyberkunju</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <style>
       :root {
-        --bg: #0b0c0e;
-        --text: #ededef;
+        --bg: #0a0b0d;
+        --metal-1: #2a2e37;
+        --metal-2: #1c1f26;
+        --metal-3: #14161b;
+        --text: #d7dbe3;
         --muted: #8a8f99;
         --faint: #565b65;
-        --line: rgba(255, 255, 255, 0.12);
-        --accent: #c26a52; /* terracotta — the only colour */
+        --engrave-hi: rgba(255, 255, 255, 0.09);
+        --engrave-lo: rgba(0, 0, 0, 0.6);
+        --amber: #e6a94e;
         --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
       }
@@ -22,167 +26,202 @@
       html, body { height: 100%; }
       body {
         font-family: var(--sans);
-        background: var(--bg);
         color: var(--text);
         -webkit-font-smoothing: antialiased;
         min-height: 100dvh;
         display: grid;
         place-items: center;
-        padding: clamp(14px, 2.5vw, 30px);
-        position: relative;
+        padding: clamp(16px, 3vw, 40px);
+        background:
+          radial-gradient(90% 70% at 50% 28%, #16181d 0%, #0a0b0d 70%);
       }
-      /* skeuomorphic paper grain */
       body::after {
-        content: ""; position: fixed; inset: 0; z-index: 5; pointer-events: none;
-        opacity: 0.035;
+        content: ""; position: fixed; inset: 0; z-index: 50; pointer-events: none;
+        opacity: 0.04;
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
       }
 
-      /* the bento sheet — compartments divided by hairlines (1px gaps) */
-      .sheet {
-        width: min(94vw, 52rem);
-        min-height: min(86dvh, 39rem);
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        grid-template-areas:
-          "head head head"
-          "hero hero stamp"
-          "status by contact";
-        gap: 1px;
-        background: var(--line);
-        border: 1px solid var(--line);
-        border-radius: 4px;
-        overflow: hidden;
+      /* ---- machined metal plate ---- */
+      .plate {
+        position: relative;
+        width: min(94vw, 40rem);
+        border-radius: 28px;
+        padding: clamp(1.7rem, 4.5vw, 3rem);
+        background-image:
+          repeating-linear-gradient(96deg, rgba(255,255,255,0.014) 0 1px, transparent 1px 3px),
+          linear-gradient(150deg, var(--metal-1) 0%, var(--metal-2) 46%, var(--metal-3) 100%);
+        box-shadow:
+          0 44px 90px -24px rgba(0,0,0,0.85),
+          0 12px 34px rgba(0,0,0,0.5),
+          inset 0 2px 0 rgba(255,255,255,0.16),
+          inset 0 1px 2px rgba(255,255,255,0.08),
+          inset 0 -3px 8px rgba(0,0,0,0.6);
       }
-      .cell {
-        background: var(--bg);
-        padding: clamp(1.1rem, 2.2vw, 2rem);
-        display: flex;
-        flex-direction: column;
+      /* reflective machined rim */
+      .plate::before {
+        content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px;
+        background: linear-gradient(150deg, rgba(255,255,255,0.4), rgba(255,255,255,0.04) 34%, rgba(0,0,0,0.5) 100%);
+        -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+        -webkit-mask-composite: xor; mask-composite: exclude;
+        pointer-events: none;
       }
 
-      .c-head { grid-area: head; flex-direction: row; align-items: baseline; justify-content: space-between; }
-      .c-hero { grid-area: hero; justify-content: center; gap: 1.3rem; }
-      .c-stamp { grid-area: stamp; align-items: center; justify-content: center; }
-      .c-status { grid-area: status; }
-      .c-by { grid-area: by; }
-      .c-contact { grid-area: contact; }
+      /* corner screws */
+      .screw {
+        position: absolute; width: 15px; height: 15px; border-radius: 50%;
+        background: radial-gradient(circle at 36% 30%, #40454f, #1a1c22 68%);
+        box-shadow: inset 0 1px 1px rgba(255,255,255,0.28), inset 0 -1px 2px rgba(0,0,0,0.75), 0 1px 1px rgba(0,0,0,0.5);
+      }
+      .screw::after {
+        content: ""; position: absolute; inset: 0; margin: auto;
+        width: 8px; height: 1.5px; background: rgba(0,0,0,0.55);
+        border-radius: 1px; transform: rotate(42deg);
+        box-shadow: 0 1px 0 rgba(255,255,255,0.08);
+      }
+      .screw.tl { top: 14px; left: 14px; } .screw.tr { top: 14px; right: 14px; }
+      .screw.bl { bottom: 14px; left: 14px; } .screw.br { bottom: 14px; right: 14px; }
 
+      .engrave {
+        color: #b9bec8;
+        text-shadow: 0 1px 0 var(--engrave-hi), 0 -1px 1px var(--engrave-lo);
+      }
+
+      .head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
       .brand {
-        font-family: inherit; font-size: 0.95rem; font-weight: 600; letter-spacing: 0.01em;
-        color: var(--text); background: none; border: 0; padding: 0.15rem 0.1rem;
+        font-family: inherit; font-size: 1.02rem; font-weight: 700; letter-spacing: 0.02em;
+        color: #b9bec8; text-shadow: 0 1px 0 var(--engrave-hi), 0 -1px 1px var(--engrave-lo);
+        background: none; border: 0; padding: 0.15rem 0.1rem;
         cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent;
       }
-      .idx { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--faint); }
+      .code { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--faint); }
 
-      .c-hero h1 {
-        font-size: clamp(2.6rem, 9.5vw, 5.6rem);
-        font-weight: 620; line-height: 0.9; letter-spacing: -0.045em; text-wrap: balance;
+      /* recessed glass display */
+      .display {
+        margin: clamp(1.3rem, 3vw, 2rem) 0;
+        border-radius: 16px;
+        padding: clamp(1.3rem, 3.5vw, 2.2rem);
+        background: linear-gradient(180deg, #0c0e12 0%, #070809 100%);
+        box-shadow:
+          inset 0 4px 12px rgba(0,0,0,0.9),
+          inset 0 -1px 0 rgba(255,255,255,0.05),
+          inset 0 0 0 1px rgba(0,0,0,0.6),
+          0 1px 0 rgba(255,255,255,0.06);
       }
-      .c-hero h1 .dot { color: var(--accent); }
-      .c-hero .sub { max-width: 40ch; color: var(--muted); font-size: clamp(0.96rem, 0.9rem + 0.3vw, 1.08rem); line-height: 1.55; }
-
-      /* spec-sheet fields */
-      .k { font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--faint); }
-      .v { margin-top: 0.5rem; font-size: 0.98rem; color: var(--text); }
-      a.v { text-decoration: none; color: var(--text); transition: color 160ms; }
-      a.v:hover { color: var(--accent); }
-      .v.dim { color: var(--muted); }
-
-      /* skeuomorphic rubber stamp */
-      .stamp {
-        transform: rotate(-8deg);
-        border: 2.5px solid var(--accent);
-        border-radius: 8px;
-        padding: 0.5rem 0.85rem;
-        text-align: center;
-        color: var(--accent);
-        opacity: 0.9;
-        /* distressed ink: mask out speckles so it reads as stamped */
-        -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='160'%3E%3Cfilter id='d'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.11' numOctaves='3' seed='7'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -1.6 1.15'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23d)'/%3E%3C/svg%3E");
-        mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='160'%3E%3Cfilter id='d'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.11' numOctaves='3' seed='7'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -1.6 1.15'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23d)'/%3E%3C/svg%3E");
-        -webkit-mask-size: 130% 130%; mask-size: 130% 130%;
-        -webkit-mask-position: center; mask-position: center;
+      .display .tag { font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.28em; text-transform: uppercase; color: rgba(230,169,78,0.7); }
+      .display .readout {
+        margin-top: 0.6rem;
+        font-size: clamp(1.9rem, 6.5vw, 3.1rem);
+        font-weight: 640; letter-spacing: -0.03em; line-height: 1.02;
+        color: var(--amber);
+        text-shadow: 0 0 14px rgba(230,169,78,0.35), 0 1px 0 rgba(0,0,0,0.5);
       }
-      .stamp .t, .stamp .b { display: block; font-family: var(--mono); font-size: 0.52rem; letter-spacing: 0.26em; text-transform: uppercase; }
-      .stamp b { display: block; font-family: var(--sans); font-size: 1.25rem; font-weight: 800; letter-spacing: 0.02em; margin: 0.15rem 0; }
+      .display .readout .dot { color: #fff; opacity: 0.85; }
+      .display .desc { margin-top: 0.8rem; color: var(--muted); font-size: 0.98rem; line-height: 1.55; max-width: 40ch; }
 
-      @media (max-width: 640px) {
-        .sheet {
-          grid-template-columns: 1fr;
-          grid-template-areas: "head" "hero" "stamp" "status" "by" "contact";
-          min-height: 0;
-        }
-        .c-stamp { padding-block: 2.2rem; }
+      /* engraved spec row */
+      .spec { display: flex; flex-wrap: wrap; gap: 1.2rem 2.5rem; }
+      .field { display: flex; flex-direction: column; gap: 0.45rem; }
+      .field .k { font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--faint); }
+      .field .val { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.96rem; }
+      .field .val .txt { color: #c4c9d2; text-shadow: 0 1px 0 var(--engrave-hi); }
+      .field a.txt { text-decoration: none; transition: color 160ms; }
+      .field a.txt:hover { color: var(--amber); }
+      /* physical status LED */
+      .led {
+        width: 10px; height: 10px; border-radius: 50%;
+        background: radial-gradient(circle at 34% 30%, #ffe3a6, var(--amber) 55%, #7a4f18 100%);
+        box-shadow: 0 0 9px rgba(230,169,78,0.7), inset 0 -1px 1px rgba(0,0,0,0.45), inset 0 1px 1px rgba(255,255,255,0.4);
       }
+
+      @media (max-width: 560px) { .spec { gap: 1.1rem 1.8rem; } }
     </style>
   </head>
   <body>
-    <div class="sheet">
-      <div class="cell c-head">
+    <div class="plate">
+      <span class="screw tl" aria-hidden="true"></span>
+      <span class="screw tr" aria-hidden="true"></span>
+      <span class="screw bl" aria-hidden="true"></span>
+      <span class="screw br" aria-hidden="true"></span>
+
+      <div class="head">
         <button class="brand" id="brand" aria-label="cyberkunju" title="cyberkunju">cyberkunju</button>
-        <span class="idx">v2 — mmxxvi</span>
+        <span class="code">v2 · mmxxvi</span>
       </div>
 
-      <section class="cell c-hero">
-        <h1>Under&nbsp;maintenance<span class="dot">.</span></h1>
-        <p class="sub">A new cyberkunju is being built — considered, not rushed. Back before long.</p>
+      <section class="display">
+        <span class="tag">System status</span>
+        <div class="readout">Under maintenance<span class="dot">.</span></div>
+        <p class="desc">A new cyberkunju is being built — considered, not rushed. Back before long.</p>
       </section>
 
-      <div class="cell c-stamp">
-        <span class="stamp" aria-hidden="true">
-          <span class="t">✦ cyberkunju ✦</span>
-          <b>Rebuilding</b>
-          <span class="b">no. 002 · 2026</span>
-        </span>
-      </div>
-
-      <div class="cell c-status">
-        <span class="k">Status</span>
-        <span class="v dim">In&nbsp;progress</span>
-      </div>
-      <div class="cell c-by">
-        <span class="k">By</span>
-        <span class="v">Navaneeth&nbsp;K</span>
-      </div>
-      <div class="cell c-contact">
-        <span class="k">Contact</span>
-        <a class="v" href="mailto:hi@cyberkunju.com">hi@cyberkunju.com</a>
+      <div class="spec">
+        <div class="field">
+          <span class="k">Status</span>
+          <span class="val"><span class="led" aria-hidden="true"></span><span class="txt">In&nbsp;progress</span></span>
+        </div>
+        <div class="field">
+          <span class="k">By</span>
+          <span class="val"><span class="txt">Navaneeth&nbsp;K</span></span>
+        </div>
+        <div class="field">
+          <span class="k">Contact</span>
+          <span class="val"><a class="txt" href="mailto:hi@cyberkunju.com">hi@cyberkunju.com</a></span>
+        </div>
       </div>
     </div>
 
     <style>
       .gate {
-        position: fixed; inset: 0; z-index: 30;
+        position: fixed; inset: 0; z-index: 40;
         display: grid; place-items: center;
-        background: color-mix(in oklab, #050506 78%, transparent);
-        backdrop-filter: blur(8px);
+        background: color-mix(in oklab, #050506 76%, transparent);
+        backdrop-filter: blur(9px);
         opacity: 0; visibility: hidden;
         transition: opacity 200ms ease, visibility 200ms;
       }
       .gate[data-open="true"] { opacity: 1; visibility: visible; }
       .gate__card {
-        width: min(90vw, 22rem);
-        background: var(--bg);
-        border: 1px solid var(--line);
-        border-radius: 6px;
-        padding: 1.9rem 1.6rem;
+        position: relative;
+        width: min(92vw, 23rem);
+        border-radius: 22px;
+        padding: 1.8rem 1.6rem;
+        background-image:
+          repeating-linear-gradient(96deg, rgba(255,255,255,0.014) 0 1px, transparent 1px 3px),
+          linear-gradient(150deg, var(--metal-1), var(--metal-2) 46%, var(--metal-3));
+        box-shadow:
+          0 30px 70px -20px rgba(0,0,0,0.85),
+          inset 0 2px 0 rgba(255,255,255,0.15),
+          inset 0 -3px 8px rgba(0,0,0,0.6);
+        transform: translateY(10px) scale(0.98);
+        transition: transform 260ms cubic-bezier(0.2,0,0,1);
       }
-      .gate__title { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--faint); }
+      .gate[data-open="true"] .gate__card { transform: none; }
+      .gate__card::before {
+        content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px;
+        background: linear-gradient(150deg, rgba(255,255,255,0.4), rgba(255,255,255,0.04) 34%, rgba(0,0,0,0.5));
+        -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+        -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none;
+      }
+      .gate__title { font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.24em; text-transform: uppercase; color: rgba(230,169,78,0.75); }
       .gate__hint { color: var(--muted); font-size: 0.9rem; margin-top: 0.5rem; }
-      .pin { display: flex; gap: 0.55rem; margin: 1.5rem 0 0.3rem; }
+      .pin { display: flex; gap: 0.5rem; margin: 1.4rem 0 0.3rem; }
       .pin input {
-        width: 100%; height: 3rem; min-width: 0;
-        text-align: center; font-family: var(--mono); font-size: 1.3rem; color: var(--text);
-        background: transparent; border: 0; border-bottom: 1px solid var(--line); outline: none;
-        transition: border-color 140ms;
+        width: 100%; height: 3.1rem; min-width: 0;
+        text-align: center; font-family: var(--mono); font-size: 1.35rem;
+        color: var(--amber); text-shadow: 0 0 10px rgba(230,169,78,0.45);
+        background: linear-gradient(180deg, #0c0e12, #08090b);
+        border: 0; border-radius: 11px; outline: none;
+        box-shadow: inset 0 3px 8px rgba(0,0,0,0.9), inset 0 -1px 0 rgba(255,255,255,0.05), inset 0 0 0 1px rgba(0,0,0,0.6);
+        transition: box-shadow 140ms;
         -webkit-text-security: disc; text-security: disc;
       }
-      .pin input:focus { border-bottom-color: var(--accent); }
-      .gate__error { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: #e8746a; min-height: 1rem; margin-top: 0.8rem; }
+      .pin input:focus {
+        box-shadow: inset 0 3px 8px rgba(0,0,0,0.9), inset 0 0 0 1px rgba(230,169,78,0.55), 0 0 10px rgba(230,169,78,0.25);
+      }
+      .gate__error { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: #e8746a; min-height: 1rem; margin-top: 0.8rem; }
       .gate.shake .gate__card { animation: shake 0.4s cubic-bezier(0.36,0.07,0.19,0.97); }
       @keyframes shake { 10%,90%{transform:translateX(-2px);} 20%,80%{transform:translateX(3px);} 30%,50%,70%{transform:translateX(-6px);} 40%,60%{transform:translateX(6px);} }
-      @media (prefers-reduced-motion: reduce) { .gate { transition: none; } .gate.shake .gate__card { animation: none; } }
+      @media (prefers-reduced-motion: reduce) { .gate, .gate__card { transition: none; } .gate.shake .gate__card { animation: none; } }
     </style>
 
     <div class="gate" id="gate" role="dialog" aria-modal="true" aria-label="Access" aria-hidden="true">
