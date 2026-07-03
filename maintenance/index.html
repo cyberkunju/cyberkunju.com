@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#08090c" />
+    <title>cyberkunju</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <style>
+      :root {
+        --bg: #08090c;
+        --panel: #0f1115;
+        --text: #f2f3f7;
+        --muted: #8b93a3;
+        --line: #1c2029;
+        --accent: #6d8bff;
+        --accent-2: #b48bff;
+        --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+      }
+      * { box-sizing: border-box; margin: 0; }
+      html, body { height: 100%; }
+      body {
+        font-family: var(--font);
+        background: var(--bg);
+        color: var(--text);
+        -webkit-font-smoothing: antialiased;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        position: relative;
+      }
+
+      /* Ambient animated glow behind the mark (GPU transform only). */
+      .aura {
+        position: fixed;
+        inset: -30vmax;
+        z-index: 0;
+        background:
+          conic-gradient(from 0deg,
+            transparent 0deg,
+            color-mix(in oklab, var(--accent) 55%, transparent) 90deg,
+            transparent 180deg,
+            color-mix(in oklab, var(--accent-2) 55%, transparent) 270deg,
+            transparent 360deg);
+        filter: blur(120px) saturate(120%);
+        opacity: 0.22;
+        animation: spin 32s linear infinite;
+        will-change: transform;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+
+      /* Fine grain / vignette for depth. */
+      .vignette {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+        background: radial-gradient(120% 90% at 50% 40%, transparent 40%, rgba(0,0,0,0.55) 100%);
+        pointer-events: none;
+      }
+
+      main {
+        position: relative;
+        z-index: 2;
+        width: min(92vw, 40rem);
+        padding: 2rem;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.75rem;
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.7rem;
+        cursor: pointer;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+        padding: 0.4rem 0.6rem;
+        border-radius: 14px;
+        transition: transform 160ms cubic-bezier(0.2,0,0,1);
+      }
+      .brand:active { transform: scale(0.97); }
+      .brand__mark {
+        width: 40px; height: 40px;
+        border-radius: 11px;
+        background: linear-gradient(140deg, var(--accent), var(--accent-2));
+        display: grid; place-items: center;
+        box-shadow: 0 8px 30px color-mix(in oklab, var(--accent) 35%, transparent);
+      }
+      .brand__mark svg { width: 24px; height: 24px; display: block; }
+      .brand__word {
+        font-size: 1.5rem;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        background: linear-gradient(90deg, var(--text), var(--muted));
+        -webkit-background-clip: text; background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.55rem;
+        font-size: 0.82rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--muted);
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 0.45rem 0.95rem;
+        background: color-mix(in oklab, var(--panel) 70%, transparent);
+        backdrop-filter: blur(6px);
+      }
+      .dot {
+        width: 7px; height: 7px; border-radius: 50%;
+        background: var(--accent);
+        box-shadow: 0 0 0 0 color-mix(in oklab, var(--accent) 70%, transparent);
+        animation: pulse 2.4s ease-out infinite;
+      }
+      @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--accent) 70%, transparent); }
+        70% { box-shadow: 0 0 0 9px transparent; }
+        100% { box-shadow: 0 0 0 0 transparent; }
+      }
+
+      h1 {
+        font-size: clamp(1.8rem, 1.4rem + 2.2vw, 3.1rem);
+        font-weight: 700;
+        line-height: 1.08;
+        letter-spacing: -0.03em;
+        text-wrap: balance;
+      }
+      .lead {
+        color: var(--muted);
+        font-size: clamp(1rem, 0.95rem + 0.4vw, 1.15rem);
+        max-width: 34ch;
+        line-height: 1.6;
+      }
+
+      .meta {
+        margin-top: 0.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        align-items: center;
+      }
+      .meta .name { font-weight: 600; letter-spacing: -0.01em; }
+      .meta a {
+        color: var(--text);
+        text-decoration: none;
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 1px;
+        transition: color 160ms, border-color 160ms;
+      }
+      .meta a:hover { color: var(--accent); border-color: var(--accent); }
+
+      @media (prefers-reduced-motion: reduce) {
+        .aura { animation: none; }
+        .dot { animation: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="aura" aria-hidden="true"></div>
+    <div class="vignette" aria-hidden="true"></div>
+
+    <main>
+      <button class="brand" id="brand" aria-label="cyberkunju" title="cyberkunju">
+        <span class="brand__mark" aria-hidden="true">
+          <svg viewBox="0 0 64 64" fill="none"><path d="M20 44V20h6l12 16V20h6v24h-6L26 28v16z" fill="#fff"/></svg>
+        </span>
+        <span class="brand__word">cyberkunju</span>
+      </button>
+
+      <span class="status"><span class="dot" aria-hidden="true"></span> Under maintenance</span>
+
+      <h1>Something considered is on the way.</h1>
+      <p class="lead">This site is being crafted with care. It’ll be worth the short wait — check back soon.</p>
+
+      <div class="meta">
+        <span class="name">Navaneeth&nbsp;K</span>
+        <a href="mailto:hi@cyberkunju.com">hi@cyberkunju.com</a>
+      </div>
+    </main>
+
+    <style>
+      .gate {
+        position: fixed; inset: 0; z-index: 10;
+        display: grid; place-items: center;
+        background: color-mix(in oklab, #05060a 72%, transparent);
+        backdrop-filter: blur(10px) saturate(120%);
+        opacity: 0; visibility: hidden;
+        transition: opacity 220ms cubic-bezier(0.2,0,0,1), visibility 220ms;
+      }
+      .gate[data-open="true"] { opacity: 1; visibility: visible; }
+      .gate__card {
+        width: min(92vw, 24rem);
+        background: color-mix(in oklab, var(--panel) 92%, transparent);
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        padding: 1.9rem 1.6rem;
+        text-align: center;
+        box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+        transform: translateY(10px) scale(0.98);
+        transition: transform 260ms cubic-bezier(0.2,0,0,1);
+      }
+      .gate[data-open="true"] .gate__card { transform: none; }
+      .gate__title { font-size: 1.05rem; font-weight: 650; letter-spacing: -0.01em; }
+      .gate__hint { color: var(--muted); font-size: 0.85rem; margin-top: 0.4rem; }
+      .pin {
+        display: flex; gap: 0.5rem; justify-content: center;
+        margin: 1.4rem 0 0.4rem;
+      }
+      .pin input {
+        width: 2.75rem; height: 3.25rem;
+        text-align: center;
+        font-family: var(--mono);
+        font-size: 1.35rem;
+        color: var(--text);
+        background: #0a0c10;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        outline: none;
+        transition: border-color 140ms, box-shadow 140ms, transform 140ms;
+        -webkit-text-security: disc; text-security: disc;
+      }
+      .pin input:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 22%, transparent);
+      }
+      .gate__error { color: #ff6b7f; font-size: 0.82rem; min-height: 1.1rem; margin-top: 0.5rem; }
+      .gate.shake .gate__card { animation: shake 0.4s cubic-bezier(0.36,0.07,0.19,0.97); }
+      @keyframes shake {
+        10%,90% { transform: translateX(-2px); }
+        20%,80% { transform: translateX(4px); }
+        30%,50%,70% { transform: translateX(-8px); }
+        40%,60% { transform: translateX(8px); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .gate, .gate__card { transition: none; }
+        .gate.shake .gate__card { animation: none; }
+      }
+    </style>
+
+    <div class="gate" id="gate" role="dialog" aria-modal="true" aria-label="Access" aria-hidden="true">
+      <div class="gate__card">
+        <div class="gate__title">Enter access PIN</div>
+        <div class="gate__hint">This device will stay unlocked.</div>
+        <div class="pin" id="pin">
+          <input inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Digit 1" />
+          <input inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Digit 2" />
+          <input inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Digit 3" />
+          <input inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Digit 4" />
+          <input inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Digit 5" />
+          <input inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Digit 6" />
+        </div>
+        <div class="gate__error" id="err" role="alert"></div>
+      </div>
+    </div>
+
+    <script>
+      (() => {
+        const brand = document.getElementById('brand');
+        const gate = document.getElementById('gate');
+        const err = document.getElementById('err');
+        const inputs = Array.from(document.querySelectorAll('#pin input'));
+
+        // --- secret 3-tap trigger on the logo ---
+        let taps = 0, tapTimer = null;
+        brand.addEventListener('click', () => {
+          taps += 1;
+          clearTimeout(tapTimer);
+          tapTimer = setTimeout(() => { taps = 0; }, 1200);
+          if (taps >= 3) { taps = 0; openGate(); }
+        });
+
+        function openGate() {
+          gate.dataset.open = 'true';
+          gate.setAttribute('aria-hidden', 'false');
+          err.textContent = '';
+          inputs.forEach((i) => (i.value = ''));
+          setTimeout(() => inputs[0].focus(), 60);
+        }
+        function closeGate() {
+          gate.dataset.open = 'false';
+          gate.setAttribute('aria-hidden', 'true');
+        }
+
+        gate.addEventListener('click', (e) => { if (e.target === gate) closeGate(); });
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && gate.dataset.open === 'true') closeGate();
+        });
+
+        inputs.forEach((input, idx) => {
+          input.addEventListener('input', () => {
+            input.value = input.value.replace(/\D/g, '').slice(0, 1);
+            if (input.value && idx < inputs.length - 1) inputs[idx + 1].focus();
+            if (inputs.every((i) => i.value)) submit();
+          });
+          input.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace' && !input.value && idx > 0) inputs[idx - 1].focus();
+          });
+          input.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const digits = (e.clipboardData.getData('text') || '').replace(/\D/g, '').slice(0, 6);
+            digits.split('').forEach((d, i) => { if (inputs[i]) inputs[i].value = d; });
+            if (digits.length) inputs[Math.min(digits.length, 5)].focus();
+            if (inputs.every((i) => i.value)) submit();
+          });
+        });
+
+        let busy = false;
+        async function submit() {
+          if (busy) return;
+          busy = true;
+          const pin = inputs.map((i) => i.value).join('');
+          try {
+            const res = await fetch('/__unlock/' + encodeURIComponent(pin), {
+              method: 'GET',
+              cache: 'no-store',
+            });
+            if (res.status === 204) { location.replace('/'); return; }
+            fail();
+          } catch {
+            fail();
+          }
+          busy = false;
+        }
+        function fail() {
+          err.textContent = 'Incorrect PIN';
+          gate.classList.remove('shake');
+          void gate.offsetWidth;
+          gate.classList.add('shake');
+          inputs.forEach((i) => (i.value = ''));
+          inputs[0].focus();
+        }
+      })();
+    </script>
+  </body>
+</html>

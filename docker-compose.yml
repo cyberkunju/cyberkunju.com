@@ -14,14 +14,18 @@ services:
     ports:
       - "127.0.0.1:8092:8080"
 
-    # Hardening: non-root image, no privilege escalation, read-only rootfs.
+    # Maintenance-gate secrets come from a server-only .env (never committed).
+    # Only GATE_* vars are substituted into the nginx template.
+    env_file:
+      - .env
+    environment:
+      NGINX_ENVSUBST_FILTER: "^GATE_"
+
+    # Hardening: non-root image, no privilege escalation.
+    # (read-only rootfs is omitted because the entrypoint renders the config
+    # template into /etc/nginx/conf.d at startup.)
     security_opt:
       - no-new-privileges:true
-    read_only: true
-    tmpfs:
-      - /tmp
-      - /var/cache/nginx
-      - /var/run
 
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/"]

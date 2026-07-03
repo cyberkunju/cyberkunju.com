@@ -1,0 +1,73 @@
+# Container nginx with a maintenance gate.
+# ${GATE_PIN} and ${GATE_TOKEN} are substituted at container start from
+# server-only environment (never committed). Only GATE_* vars are substituted
+# (NGINX_ENVSUBST_FILTER=^GATE_), so nginx's own $variables are left intact.
+#
+# Locked visitors always receive the maintenance page. The real site is served
+# only to devices whose cku_access cookie carries the secret token, which nginx
+# sets after the correct PIN path is hit.
+
+map $cookie_cku_access $cku_unlocked {
+    default 0;
+    "${GATE_TOKEN}" 1;
+}
+
+server {
+    listen 8080;
+    server_name _;
+    server_tokens off;
+
+    # Unlock: only the exact correct PIN path exists. Sets a long-lived,
+    # HttpOnly cookie carrying the secret token, then 204 No Content.
+    location = /__unlock/${GATE_PIN} {
+        add_header Set-Cookie "cku_access=${GATE_TOKEN}; Path=/; Max-Age=31536000; HttpOnly; Secure; SameSite=Lax" always;
+        add_header Cache-Control "no-store" always;
+        return 204;
+    }
+
+    # Locked visitors: the maintenance page for any path.
+    location @maintenance {
+        root /usr/share/nginx/maintenance;
+        add_header Cache-Control "no-store, must-revalidate" always;
+        try_files /index.html =404;
+    }
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Real, content-hashed assets — only when unlocked.
+    location /_astro/ {
+        if ($cku_unlocked = 0) { return 404; }
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        try_files $uri =404;
+    }
+
+    location = /sw.js {
+        if ($cku_unlocked = 0) { return 404; }
+        add_header Cache-Control "no-store" always;
+        try_files $uri =404;
+    }
+
+    # Everything else: gated. Locked -> maintenance; unlocked -> real site.
+    location / {
+        if ($cku_unlocked = 0) { return 418; }
+        error_page 418 = @maintenance;
+        add_header Cache-Control "no-store" always;
+        try_files $uri $uri/index.html $uri.html =404;
+    }
+
+    error_page 404 /404.html;
+    location = /404.html {
+        internal;
+        add_header Cache-Control "no-store" always;
+    }
+
+    gzip on;
+    gzip_comp_level 6;
+    gzip_min_length 512;
+    gzip_types text/css application/javascript application/json image/svg+xml text/plain application/manifest+json;
+
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+}

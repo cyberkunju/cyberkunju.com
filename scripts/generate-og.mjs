@@ -9,7 +9,7 @@
 import { mkdir } from 'node:fs/promises';
 import sharp from 'sharp';
 
-const NAME = 'Your Name';
+const NAME = 'Navaneeth K';
 const TITLE = 'Software Engineer';
 const DOMAIN = 'www.cyberkunju.com';
 

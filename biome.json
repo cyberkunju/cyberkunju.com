@@ -6,7 +6,15 @@
   },
   "files": {
     "ignoreUnknown": true,
-    "includes": ["**", "!dist", "!.astro", "!node_modules", "!**/*.astro", "!**/*.svelte"]
+    "includes": [
+      "**",
+      "!dist",
+      "!.astro",
+      "!node_modules",
+      "!**/*.astro",
+      "!**/*.svelte",
+      "!maintenance"
+    ]
   },
   "formatter": {
     "enabled": true,

@@ -31,14 +31,14 @@ export interface SiteConfig {
 }
 
 export const site: SiteConfig = {
-  name: 'Your Name', // TODO(owner)
+  name: 'Navaneeth K',
   handle: 'cyberkunju',
-  title: 'Your Name — Software Engineer',
+  title: 'Navaneeth K — cyberkunju',
   description: 'Portfolio and engineering notes. Systems, performance, and the work behind them.',
   url: 'https://www.cyberkunju.com', // keep in sync with astro.config.mjs `site`
   locale: 'en',
   jobTitle: 'Software Engineer',
-  email: 'hello@cyberkunju.dev', // TODO(owner)
+  email: 'hi@cyberkunju.com',
   nav: [
     { label: 'Work', href: '/projects' },
     { label: 'About', href: '/about' },
