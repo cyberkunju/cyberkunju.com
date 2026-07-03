@@ -13,9 +13,9 @@
         --panel: #0f1115;
         --text: #f2f3f7;
         --muted: #8b93a3;
+        --faint: #5a6170;
         --line: #1c2029;
         --accent: #6d8bff;
-        --accent-2: #b48bff;
         --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
       }
@@ -24,165 +24,91 @@
       body {
         font-family: var(--font);
         background: var(--bg);
+        /* soft, static glow — no motion */
+        background-image: radial-gradient(60% 50% at 50% 38%, rgba(109,139,255,0.10), transparent 70%);
         color: var(--text);
         -webkit-font-smoothing: antialiased;
         display: grid;
         place-items: center;
-        overflow: hidden;
-        position: relative;
-      }
-
-      /* Ambient animated glow behind the mark (GPU transform only). */
-      .aura {
-        position: fixed;
-        inset: -30vmax;
-        z-index: 0;
-        background:
-          conic-gradient(from 0deg,
-            transparent 0deg,
-            color-mix(in oklab, var(--accent) 55%, transparent) 90deg,
-            transparent 180deg,
-            color-mix(in oklab, var(--accent-2) 55%, transparent) 270deg,
-            transparent 360deg);
-        filter: blur(120px) saturate(120%);
-        opacity: 0.22;
-        animation: spin 32s linear infinite;
-        will-change: transform;
-      }
-      @keyframes spin { to { transform: rotate(360deg); } }
-
-      /* Fine grain / vignette for depth. */
-      .vignette {
-        position: fixed;
-        inset: 0;
-        z-index: 1;
-        background: radial-gradient(120% 90% at 50% 40%, transparent 40%, rgba(0,0,0,0.55) 100%);
-        pointer-events: none;
+        text-align: center;
+        padding: 2rem;
       }
 
       main {
-        position: relative;
-        z-index: 2;
-        width: min(92vw, 40rem);
-        padding: 2rem;
-        text-align: center;
+        width: min(92vw, 34rem);
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 1.75rem;
+        gap: 1.4rem;
       }
 
       .brand {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.7rem;
+        font-size: 1.7rem;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        color: var(--text);
+        background: none;
+        border: 0;
+        padding: 0.3rem 0.5rem;
         cursor: pointer;
         user-select: none;
         -webkit-tap-highlight-color: transparent;
-        padding: 0.4rem 0.6rem;
-        border-radius: 14px;
-        transition: transform 160ms cubic-bezier(0.2,0,0,1);
-      }
-      .brand:active { transform: scale(0.97); }
-      .brand__mark {
-        width: 40px; height: 40px;
-        border-radius: 11px;
-        background: linear-gradient(140deg, var(--accent), var(--accent-2));
-        display: grid; place-items: center;
-        box-shadow: 0 8px 30px color-mix(in oklab, var(--accent) 35%, transparent);
-      }
-      .brand__mark svg { width: 24px; height: 24px; display: block; }
-      .brand__word {
-        font-size: 1.5rem;
-        font-weight: 700;
-        letter-spacing: -0.03em;
-        background: linear-gradient(90deg, var(--text), var(--muted));
-        -webkit-background-clip: text; background-clip: text;
-        -webkit-text-fill-color: transparent;
+        font-family: inherit;
       }
 
-      .status {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.55rem;
-        font-size: 0.82rem;
-        letter-spacing: 0.14em;
+      .label {
+        font-size: 0.78rem;
+        letter-spacing: 0.22em;
         text-transform: uppercase;
-        color: var(--muted);
-        border: 1px solid var(--line);
-        border-radius: 999px;
-        padding: 0.45rem 0.95rem;
-        background: color-mix(in oklab, var(--panel) 70%, transparent);
-        backdrop-filter: blur(6px);
-      }
-      .dot {
-        width: 7px; height: 7px; border-radius: 50%;
-        background: var(--accent);
-        box-shadow: 0 0 0 0 color-mix(in oklab, var(--accent) 70%, transparent);
-        animation: pulse 2.4s ease-out infinite;
-      }
-      @keyframes pulse {
-        0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--accent) 70%, transparent); }
-        70% { box-shadow: 0 0 0 9px transparent; }
-        100% { box-shadow: 0 0 0 0 transparent; }
+        color: var(--faint);
       }
 
       h1 {
-        font-size: clamp(1.8rem, 1.4rem + 2.2vw, 3.1rem);
+        font-size: clamp(1.7rem, 1.35rem + 1.8vw, 2.6rem);
         font-weight: 700;
-        line-height: 1.08;
+        line-height: 1.12;
         letter-spacing: -0.03em;
         text-wrap: balance;
       }
+
       .lead {
         color: var(--muted);
-        font-size: clamp(1rem, 0.95rem + 0.4vw, 1.15rem);
-        max-width: 34ch;
+        font-size: 1.02rem;
         line-height: 1.6;
+        max-width: 32ch;
       }
 
       .meta {
-        margin-top: 0.25rem;
+        margin-top: 0.5rem;
+        font-size: 0.95rem;
+        color: var(--muted);
         display: flex;
-        flex-direction: column;
-        gap: 0.4rem;
         align-items: center;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+        justify-content: center;
       }
-      .meta .name { font-weight: 600; letter-spacing: -0.01em; }
+      .meta .name { color: var(--text); font-weight: 600; }
+      .meta .sep { color: var(--line); }
       .meta a {
-        color: var(--text);
+        color: var(--muted);
         text-decoration: none;
         border-bottom: 1px solid var(--line);
         padding-bottom: 1px;
         transition: color 160ms, border-color 160ms;
       }
       .meta a:hover { color: var(--accent); border-color: var(--accent); }
-
-      @media (prefers-reduced-motion: reduce) {
-        .aura { animation: none; }
-        .dot { animation: none; }
-      }
     </style>
   </head>
   <body>
-    <div class="aura" aria-hidden="true"></div>
-    <div class="vignette" aria-hidden="true"></div>
-
     <main>
-      <button class="brand" id="brand" aria-label="cyberkunju" title="cyberkunju">
-        <span class="brand__mark" aria-hidden="true">
-          <svg viewBox="0 0 64 64" fill="none"><path d="M20 44V20h6l12 16V20h6v24h-6L26 28v16z" fill="#fff"/></svg>
-        </span>
-        <span class="brand__word">cyberkunju</span>
-      </button>
-
-      <span class="status"><span class="dot" aria-hidden="true"></span> Under maintenance</span>
-
-      <h1>Something considered is on the way.</h1>
-      <p class="lead">This site is being crafted with care. It’ll be worth the short wait — check back soon.</p>
-
+      <button class="brand" id="brand" aria-label="cyberkunju" title="cyberkunju">cyberkunju</button>
+      <span class="label">Under maintenance</span>
+      <h1>A new site is on the way.</h1>
+      <p class="lead">This site is being rebuilt with care. Please check back soon.</p>
       <div class="meta">
         <span class="name">Navaneeth&nbsp;K</span>
+        <span class="sep" aria-hidden="true">·</span>
         <a href="mailto:hi@cyberkunju.com">hi@cyberkunju.com</a>
       </div>
     </main>
@@ -211,10 +137,7 @@
       .gate[data-open="true"] .gate__card { transform: none; }
       .gate__title { font-size: 1.05rem; font-weight: 650; letter-spacing: -0.01em; }
       .gate__hint { color: var(--muted); font-size: 0.85rem; margin-top: 0.4rem; }
-      .pin {
-        display: flex; gap: 0.5rem; justify-content: center;
-        margin: 1.4rem 0 0.4rem;
-      }
+      .pin { display: flex; gap: 0.5rem; justify-content: center; margin: 1.4rem 0 0.4rem; }
       .pin input {
         width: 2.75rem; height: 3.25rem;
         text-align: center;
@@ -225,7 +148,7 @@
         border: 1px solid var(--line);
         border-radius: 12px;
         outline: none;
-        transition: border-color 140ms, box-shadow 140ms, transform 140ms;
+        transition: border-color 140ms, box-shadow 140ms;
         -webkit-text-security: disc; text-security: disc;
       }
       .pin input:focus {
@@ -269,7 +192,6 @@
         const err = document.getElementById('err');
         const inputs = Array.from(document.querySelectorAll('#pin input'));
 
-        // --- secret 3-tap trigger on the logo ---
         let taps = 0, tapTimer = null;
         brand.addEventListener('click', () => {
           taps += 1;
@@ -319,15 +241,10 @@
           busy = true;
           const pin = inputs.map((i) => i.value).join('');
           try {
-            const res = await fetch('/__unlock/' + encodeURIComponent(pin), {
-              method: 'GET',
-              cache: 'no-store',
-            });
+            const res = await fetch('/__unlock/' + encodeURIComponent(pin), { method: 'GET', cache: 'no-store' });
             if (res.status === 204) { location.replace('/'); return; }
             fail();
-          } catch {
-            fail();
-          }
+          } catch { fail(); }
           busy = false;
         }
         function fail() {
