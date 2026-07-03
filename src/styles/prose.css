@@ -1,0 +1,82 @@
+/* Long-form article/markdown styling, constrained to a readable measure. */
+
+.prose {
+  max-width: var(--measure);
+  --flow: var(--space-md);
+}
+
+.prose > * + * {
+  margin-block-start: var(--flow);
+}
+
+.prose h2 {
+  margin-block-start: var(--space-xl);
+}
+.prose h3 {
+  margin-block-start: var(--space-lg);
+}
+
+.prose :where(h2, h3) {
+  scroll-margin-block-start: var(--space-xl);
+}
+
+.prose a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  text-decoration-thickness: 1px;
+}
+
+.prose ul,
+.prose ol {
+  padding-inline-start: 1.4em;
+}
+.prose li + li {
+  margin-block-start: var(--space-2xs);
+}
+
+.prose code:not(.astro-code code) {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  padding: 0.1em 0.35em;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+}
+
+.prose blockquote {
+  padding-inline-start: var(--space-md);
+  border-inline-start: 3px solid var(--border);
+  color: var(--text-muted);
+}
+
+/* Shiki code blocks */
+.astro-code {
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  border: var(--border-width) solid var(--border);
+  font-size: var(--step--1);
+  overflow-x: auto;
+  tab-size: 2;
+}
+
+/* Dual-theme Shiki: default output is light; switch to the dark variables
+   when the user (or system) is in dark mode. */
+:root.dark .astro-code,
+:root.dark .astro-code span {
+  color: var(--shiki-dark) !important;
+  background-color: var(--shiki-dark-bg) !important;
+  font-style: var(--shiki-dark-font-style) !important;
+  font-weight: var(--shiki-dark-font-weight) !important;
+  text-decoration: var(--shiki-dark-text-decoration) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) .astro-code,
+  :root:not(.light) .astro-code span {
+    color: var(--shiki-dark) !important;
+    background-color: var(--shiki-dark-bg) !important;
+    font-style: var(--shiki-dark-font-style) !important;
+    font-weight: var(--shiki-dark-font-weight) !important;
+    text-decoration: var(--shiki-dark-text-decoration) !important;
+  }
+}

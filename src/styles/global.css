@@ -1,0 +1,7 @@
+/* Cascade layers give predictable ordering regardless of import/bundle order. */
+@layer reset, tokens, base, components;
+
+@import "./reset.css" layer(reset);
+@import "./tokens.css" layer(tokens);
+@import "./base.css" layer(base);
+@import "./prose.css" layer(components);

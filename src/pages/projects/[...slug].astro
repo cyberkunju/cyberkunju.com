@@ -1,0 +1,82 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { site } from '../../config/site';
+
+export const getStaticPaths = (async () => {
+  const projects = await getCollection('projects', ({ data }) => !data.draft);
+  return projects.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+}) satisfies GetStaticPaths;
+
+const { entry } = Astro.props;
+const { data } = entry;
+const { Content } = await render(entry);
+
+const dateFmt = new Intl.DateTimeFormat(site.locale, { year: 'numeric', month: 'long' });
+
+const creativeWork = {
+  '@type': 'CreativeWork',
+  name: data.title,
+  description: data.summary,
+  dateCreated: data.date.toISOString(),
+  ...(data.updated && { dateModified: data.updated.toISOString() }),
+  author: { '@id': `${site.url}/#person` },
+  keywords: data.tags.join(', '),
+  url: new URL(`/projects/${entry.id}`, site.url).href,
+};
+---
+
+<BaseLayout
+  title={data.title}
+  description={data.summary}
+  type="article"
+  publishedTime={data.date}
+  modifiedTime={data.updated}
+  jsonLdExtra={[creativeWork]}
+>
+  <article class="stack" style="--flow: var(--space-lg); padding-block: var(--space-xl);">
+    <a href="/projects" class="muted">← Work</a>
+
+    <header class="stack" style="--flow: var(--space-sm); max-width: var(--measure);">
+      <span class="eyebrow">{data.role}</span>
+      <h1>{data.title}</h1>
+      <p class="lead muted" style="font-size: var(--step-1);">{data.summary}</p>
+
+      <div class="cluster muted" style="font-size: var(--step--1);">
+        <time datetime={data.date.toISOString()}>{dateFmt.format(data.date)}</time>
+        {data.stack.length > 0 && <span aria-hidden="true">·</span>}
+        {data.stack.map((s) => <span class="tag">{s}</span>)}
+      </div>
+
+      {
+        (data.links.repo || data.links.live || data.links.writeup) && (
+          <div class="cluster" style="margin-block-start: var(--space-xs);">
+            {data.links.live && (
+              <a class="button" href={data.links.live} rel="noopener" target="_blank" data-no-prerender>
+                Live
+              </a>
+            )}
+            {data.links.repo && (
+              <a class="button button--ghost" href={data.links.repo} rel="noopener" target="_blank" data-no-prerender>
+                Source
+              </a>
+            )}
+            {data.links.writeup && (
+              <a class="button button--ghost" href={data.links.writeup} rel="noopener" target="_blank" data-no-prerender>
+                Write-up
+              </a>
+            )}
+          </div>
+        )
+      }
+    </header>
+
+    <div class="prose">
+      <Content />
+    </div>
+  </article>
+</BaseLayout>

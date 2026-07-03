@@ -1,0 +1,24 @@
+---
+import { site } from '../config/site';
+import ThemeToggle from './ThemeToggle.svelte';
+
+const path = Astro.url.pathname;
+const isCurrent = (href: string) =>
+  href === '/' ? path === '/' : path === href || path.startsWith(`${href}/`);
+---
+
+<header class="site-header">
+  <div class="container site-header__inner">
+    <a class="brand" href="/" aria-label={`${site.name} — home`}>{site.handle}</a>
+    <nav class="nav" aria-label="Primary">
+      {
+        site.nav.map((item) => (
+          <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>
+            {item.label}
+          </a>
+        ))
+      }
+      <ThemeToggle client:idle />
+    </nav>
+  </div>
+</header>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Site icon">
+  <rect width="64" height="64" rx="14" fill="#2f5eff" />
+  <path
+    d="M20 44V20h6l12 16V20h6v24h-6L26 28v16z"
+    fill="#ffffff"
+  />
+</svg>

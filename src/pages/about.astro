@@ -1,0 +1,30 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { site } from '../config/site';
+---
+
+<BaseLayout title="About" description={`About ${site.name}.`}>
+  <section class="stack prose" style="--flow: var(--space-md); padding-block: var(--space-2xl) var(--space-xl);">
+    <h1>About</h1>
+    <p>
+      {/* TODO(owner): replace with your story. Who you are, what you build, and
+         what you care about. Keep it clear and skimmable — recruiters read fast. */}
+      I build software with a bias toward correctness, performance, and systems
+      that are pleasant to operate. This site is the public face of a broader
+      personal platform.
+    </p>
+    <h2>Elsewhere</h2>
+    <ul>
+      {
+        site.social.map((s) => (
+          <li>
+            <a href={s.href} rel="me noopener" target="_blank" data-no-prerender>
+              {s.label}
+            </a>
+          </li>
+        ))
+      }
+      <li><a href={`mailto:${site.email}`} data-no-prerender>Email</a></li>
+    </ul>
+  </section>
+</BaseLayout>

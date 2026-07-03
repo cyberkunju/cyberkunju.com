@@ -1,0 +1,22 @@
+---
+/**
+ * In-page Speculation Rules: prerender same-origin pages on intent (hover /
+ * pointerdown) so navigation is effectively instant in Chromium browsers.
+ * Non-supporting browsers (Safari/Firefox) ignore this with no ill effect.
+ * Cloudflare Speed Brain complements this at the edge.
+ *
+ * Opt a link out with `data-no-prerender`.
+ */
+const rules = {
+  prerender: [
+    {
+      where: {
+        and: [{ href_matches: '/*' }, { not: { selector_matches: '[data-no-prerender]' } }],
+      },
+      eagerness: 'moderate',
+    },
+  ],
+};
+---
+
+<script type="speculationrules" set:html={JSON.stringify(rules)} is:inline />

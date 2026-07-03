@@ -1,0 +1,37 @@
+# build output
+dist/
+.astro/
+
+# dependencies
+node_modules/
+
+# logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# environment variables
+.env
+.env.production
+.env.*.local
+
+# macOS / editor
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# temp command logs used during scaffolding
+*_init.log
+*_install.log
+*_build.log
+
+# local recon / scratch artifacts (never commit)
+*.txt
+setup*.log
+verify*.log

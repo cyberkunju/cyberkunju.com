@@ -1,0 +1,63 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { site } from '../config/site';
+
+const projects = (await getCollection('projects', ({ data }) => !data.draft))
+  .filter((p) => p.data.featured)
+  .sort((a, b) => {
+    const ao = a.data.order ?? Number.MAX_SAFE_INTEGER;
+    const bo = b.data.order ?? Number.MAX_SAFE_INTEGER;
+    if (ao !== bo) return ao - bo;
+    return b.data.date.getTime() - a.data.date.getTime();
+  });
+---
+
+<BaseLayout>
+  <section class="hero stack" style="--flow: var(--space-lg);">
+    <p class="eyebrow">{site.jobTitle}</p>
+    <h1>{site.name}</h1>
+    <p class="lead muted">{site.description}</p>
+    <div class="cluster">
+      <a class="button" href="/projects">View work</a>
+      <a class="button button--ghost" href={`mailto:${site.email}`} data-no-prerender>Get in touch</a>
+    </div>
+  </section>
+
+  <section class="cv-auto stack" style="--flow: var(--space-lg); margin-block-start: var(--space-2xl);">
+    <div class="cluster" style="justify-content: space-between;">
+      <h2>Selected work</h2>
+      <a href="/projects" class="muted">All projects →</a>
+    </div>
+
+    <ul role="list" class="grid-cards">
+      {
+        projects.map((p) => (
+          <li>
+            <a class="card" href={`/projects/${p.id}`}>
+              <span class="eyebrow">{p.data.role}</span>
+              <h3>{p.data.title}</h3>
+              <p class="muted">{p.data.summary}</p>
+              <span class="cluster" style="margin-block-start: var(--space-xs);">
+                {p.data.stack.slice(0, 4).map((s) => (
+                  <span class="tag">{s}</span>
+                ))}
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <style>
+    .hero {
+      padding-block: var(--space-3xl) var(--space-xl);
+      max-width: var(--container-narrow);
+    }
+    .lead {
+      font-size: var(--step-1);
+      max-width: var(--measure);
+    }
+  </style>
+</BaseLayout>

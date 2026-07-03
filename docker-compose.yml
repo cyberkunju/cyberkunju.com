@@ -1,0 +1,43 @@
+# Portfolio — static site container, fronted by the host nginx reverse proxy.
+# Published on localhost only; the host vhost for www.cyberkunju.com proxies here.
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: portfolio:latest
+    container_name: portfolio
+    restart: unless-stopped
+
+    # Localhost-only publish. Host nginx proxies www.cyberkunju.com -> here.
+    ports:
+      - "127.0.0.1:8092:8080"
+
+    # Hardening: non-root image, no privilege escalation, read-only rootfs.
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/cache/nginx
+      - /var/run
+
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: "0.50"
