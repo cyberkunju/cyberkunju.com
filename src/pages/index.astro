@@ -1,6 +1,5 @@
 ---
 import { getCollection } from 'astro:content';
-import FontSwitcher from '../components/FontSwitcher.svelte';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { site } from '../config/site';
 
@@ -23,7 +22,6 @@ const projects = (await getCollection('projects', ({ data }) => !data.draft))
       <a class="button" href="/projects">View work</a>
       <a class="button button--ghost" href={`mailto:${site.email}`} data-no-prerender>Get in touch</a>
     </div>
-    <FontSwitcher client:idle />
   </section>
 
   <section class="cv-auto stack" style="--flow: var(--space-lg); margin-block-start: var(--space-2xl);">
