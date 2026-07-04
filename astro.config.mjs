@@ -12,7 +12,11 @@ export default defineConfig({
   site: SITE,
   trailingSlash: 'never',
 
-  integrations: [svelte(), sitemap()],
+  integrations: [
+    svelte(),
+    // Keep the internal design/style-guide page out of the sitemap.
+    sitemap({ filter: (page) => !page.includes('/design') }),
+  ],
 
   // Native Shiki highlighting with dual themes. Light is the default output;
   // dark is switched via CSS (see src/styles/prose.css). Astro 7 ships a

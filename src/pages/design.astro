@@ -1,0 +1,246 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+// Candidate palettes — role sets. The swatches re-theme this page live on click.
+const palettes = [
+  { id: 'C1', name: 'Ink & Bone', bg: '#0b0c0e', surface: '#131519', text: '#ededef', muted: '#8a8f99', border: '#20232a', accent: '#c26a52' },
+  { id: 'C2', name: 'Midnight Indigo', bg: '#0b0d16', surface: '#141826', text: '#e9ebf2', muted: '#9aa2b8', border: '#232838', accent: '#7c8cff' },
+  { id: 'C3', name: 'Charcoal & Amber', bg: '#0c0d10', surface: '#16181d', text: '#e9ebf0', muted: '#9298a3', border: '#23262d', accent: '#e6a94e' },
+  { id: 'C4', name: 'Slate & Cyan', bg: '#0c1014', surface: '#141a20', text: '#e8edf2', muted: '#909aa5', border: '#222b33', accent: '#33c6dc' },
+  { id: 'C5', name: 'Phosphor', bg: '#0a0f0b', surface: '#10160f', text: '#d8e6d6', muted: '#7f8f7d', border: '#1e2a1d', accent: '#57d977' },
+  { id: 'C6', name: 'Paper (light)', bg: '#f7f6f3', surface: '#ffffff', text: '#17181c', muted: '#5b616e', border: '#e6e4de', accent: '#c2542f', light: true },
+];
+
+const typeScale = [
+  { name: '--step-4', label: 'Display / H1' },
+  { name: '--step-3', label: 'H2 large' },
+  { name: '--step-2', label: 'H2' },
+  { name: '--step-1', label: 'H3 / lead' },
+  { name: '--step-0', label: 'Body' },
+  { name: '--step--1', label: 'Small / labels' },
+];
+---
+
+<BaseLayout title="Design system" noindex>
+  <div class="guide">
+    <header class="guide__intro">
+      <p class="eyebrow">Internal · not indexed</p>
+      <h1>Design system</h1>
+      <p class="muted">Every element with your current tokens. Click a palette to preview it live, toggle light/dark in the header, and tell me what to change.</p>
+    </header>
+
+    <!-- PALETTE PREVIEWER -->
+    <section class="guide__section">
+      <span class="guide__label">01 · Palettes <em>(click to preview live)</em></span>
+      <div class="swatches">
+        {palettes.map((p) => (
+          <button
+            class="swatch"
+            data-palette={JSON.stringify(p)}
+            style={`--sw-bg:${p.bg};--sw-sf:${p.surface};--sw-ac:${p.accent};--sw-tx:${p.text}`}
+          >
+            <span class="swatch__chips">
+              <i style={`background:${p.bg}`}></i>
+              <i style={`background:${p.surface}`}></i>
+              <i style={`background:${p.accent}`}></i>
+              <i style={`background:${p.text}`}></i>
+            </span>
+            <span class="swatch__meta"><b>{p.id}</b> {p.name}</span>
+          </button>
+        ))}
+      </div>
+      <p class="muted small">Reset: reload the page. These only preview colors — type/spacing stay as set.</p>
+    </section>
+
+    <!-- CURRENT COLOR ROLES -->
+    <section class="guide__section">
+      <span class="guide__label">02 · Colour roles <em>(current)</em></span>
+      <div class="roles">
+        <div class="role"><span class="role__box" style="background:var(--bg)"></span><span class="k">--bg</span></div>
+        <div class="role"><span class="role__box" style="background:var(--surface)"></span><span class="k">--surface</span></div>
+        <div class="role"><span class="role__box" style="background:var(--text)"></span><span class="k">--text</span></div>
+        <div class="role"><span class="role__box" style="background:var(--text-muted)"></span><span class="k">--text-muted</span></div>
+        <div class="role"><span class="role__box" style="background:var(--border)"></span><span class="k">--border</span></div>
+        <div class="role"><span class="role__box" style="background:var(--accent)"></span><span class="k">--accent</span></div>
+      </div>
+    </section>
+
+    <!-- TYPOGRAPHY -->
+    <section class="guide__section">
+      <span class="guide__label">03 · Type scale</span>
+      <div class="stack">
+        {typeScale.map((t) => (
+          <div class="type-row">
+            <span class="type-tag">{t.name} · {t.label}</span>
+            <span style={`font-size:var(${t.name});font-weight:${t.name === '--step-0' || t.name === '--step--1' ? 400 : 700};letter-spacing:-0.02em`}>
+              The quick brown fox
+            </span>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- HEADINGS -->
+    <section class="guide__section">
+      <span class="guide__label">04 · Headings & text</span>
+      <div class="demo">
+        <span class="eyebrow">Eyebrow label</span>
+        <h1>Heading level one</h1>
+        <h2>Heading level two</h2>
+        <h3>Heading level three</h3>
+        <p>Body copy — the workhorse paragraph. Readable measure, comfortable line height, muted variants for secondary text.</p>
+        <p class="muted">Muted paragraph for secondary information and captions.</p>
+      </div>
+    </section>
+
+    <!-- BUTTONS -->
+    <section class="guide__section">
+      <span class="guide__label">05 · Buttons</span>
+      <div class="demo cluster">
+        <a class="button" href="#">Primary</a>
+        <a class="button button--ghost" href="#">Ghost / secondary</a>
+      </div>
+      <p class="cap">Used for: View work, Get in touch, project links.</p>
+    </section>
+
+    <!-- TAGS + LINKS -->
+    <section class="guide__section">
+      <span class="guide__label">06 · Tags & links</span>
+      <div class="demo">
+        <div class="cluster">
+          <span class="tag">Rust</span><span class="tag">Astro</span><span class="tag">Postgres</span><span class="tag">Performance</span>
+        </div>
+        <p style="margin-top:1rem">Inline text with an <a href="#" style="color:var(--accent);text-decoration:underline;text-underline-offset:0.15em">inline link</a> and a normal <a href="#">nav-style link</a>.</p>
+      </div>
+      <p class="cap">Tags = tech/skill chips on cards & project meta.</p>
+    </section>
+
+    <!-- CARDS -->
+    <section class="guide__section">
+      <span class="guide__label">07 · Project cards</span>
+      <ul role="list" class="grid-cards demo">
+        <li>
+          <a class="card" href="#">
+            <span class="eyebrow">Design & Engineering</span>
+            <h3>Edge-Native Portfolio</h3>
+            <p class="muted">Zero-JS static site engineered for instant global loads.</p>
+            <span class="cluster" style="margin-block-start:var(--space-xs)"><span class="tag">Astro</span><span class="tag">Cloudflare</span></span>
+          </a>
+        </li>
+        <li>
+          <a class="card" href="#">
+            <span class="eyebrow">Architecture</span>
+            <h3>Rust Personal Platform</h3>
+            <p class="muted">Memory-safe backend powering personal tools behind auth.</p>
+            <span class="cluster" style="margin-block-start:var(--space-xs)"><span class="tag">Rust</span><span class="tag">Axum</span></span>
+          </a>
+        </li>
+      </ul>
+    </section>
+
+    <!-- META ROW -->
+    <section class="guide__section">
+      <span class="guide__label">08 · Project meta row</span>
+      <div class="demo cluster muted" style="font-size:var(--step--1)">
+        <time>June 2026</time><span aria-hidden="true">·</span>
+        <span class="tag">Rust</span><span class="tag">Axum</span><span class="tag">PostgreSQL</span>
+      </div>
+    </section>
+
+    <!-- PROSE -->
+    <section class="guide__section">
+      <span class="guide__label">09 · Article / prose (project write-ups)</span>
+      <div class="demo prose">
+        <h2>Overview</h2>
+        <p>Long-form write-up styling — the reading experience for case studies. Constrained to a comfortable measure.</p>
+        <h3>Design notes</h3>
+        <ul>
+          <li>Compile-checked queries against a real schema.</li>
+          <li>Structured logging and metrics.</li>
+        </ul>
+        <blockquote>A short pull quote or callout to emphasize a point.</blockquote>
+        <p>Inline <code>const answer = 42;</code> code, and a block:</p>
+        <pre><code>fn main() {'{'}
+    println!("hello, cyberkunju");
+{'}'}</code></pre>
+      </div>
+    </section>
+
+    <!-- FORM FIELDS (proposal) -->
+    <section class="guide__section">
+      <span class="guide__label">10 · Form fields <em>(proposal — for a contact page)</em></span>
+      <div class="demo g-form">
+        <label class="g-label">Name<input class="g-input" type="text" placeholder="Ada Lovelace" /></label>
+        <label class="g-label">Message<textarea class="g-input" rows="3" placeholder="Say hello…"></textarea></label>
+        <a class="button" href="#">Send</a>
+      </div>
+    </section>
+  </div>
+
+  <style>
+    .guide { max-width: 60rem; margin-inline: auto; padding-block: var(--space-lg) var(--space-3xl); }
+    .guide__intro { margin-block-end: var(--space-2xl); }
+    .guide__intro h1 { margin-block: var(--space-xs); }
+    .guide__section { margin-block-start: var(--space-2xl); }
+    .guide__label {
+      display: block; font-family: var(--font-mono); font-size: var(--step--1);
+      letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted);
+      padding-block-end: var(--space-xs); margin-block-end: var(--space-lg);
+      border-block-end: 1px solid var(--border);
+    }
+    .guide__label em { color: var(--accent); font-style: normal; text-transform: none; letter-spacing: 0; }
+    .demo { padding: var(--space-lg); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); }
+    .cap, .small { color: var(--text-muted); font-size: var(--step--1); margin-block-start: var(--space-sm); }
+
+    .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); gap: var(--space-md); }
+    .swatch {
+      display: flex; flex-direction: column; gap: 0.6rem; text-align: left; cursor: pointer;
+      padding: 0.8rem; border-radius: var(--radius-md); border: 1px solid var(--border);
+      background: var(--sw-bg); color: var(--sw-tx); transition: transform 140ms var(--ease), border-color 140ms;
+    }
+    .swatch:hover { transform: translateY(-2px); border-color: var(--sw-ac); }
+    .swatch__chips { display: flex; gap: 4px; }
+    .swatch__chips i { width: 100%; height: 26px; border-radius: 6px; border: 1px solid rgba(128,128,128,0.25); }
+    .swatch__meta { font-size: var(--step--1); }
+    .swatch__meta b { color: var(--sw-ac); }
+
+    .roles { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 9rem), 1fr)); gap: var(--space-md); }
+    .role { display: flex; flex-direction: column; gap: 0.4rem; }
+    .role__box { height: 54px; border-radius: var(--radius-md); border: 1px solid var(--border); }
+    .role .k { font-family: var(--font-mono); font-size: var(--step--1); color: var(--text-muted); }
+
+    .type-row { display: grid; grid-template-columns: 12rem 1fr; gap: var(--space-md); align-items: baseline; padding-block: var(--space-xs); border-block-end: 1px dashed var(--border); }
+    .type-tag { font-family: var(--font-mono); font-size: var(--step--1); color: var(--text-muted); }
+
+    .guide .prose pre { padding: var(--space-md); border: 1px solid var(--border); border-radius: var(--radius-md); overflow-x: auto; background: color-mix(in srgb, var(--text) 5%, transparent); font-family: var(--font-mono); font-size: var(--step--1); }
+
+    .g-form { display: flex; flex-direction: column; gap: var(--space-md); max-width: 26rem; }
+    .g-label { display: flex; flex-direction: column; gap: 0.4rem; font-size: var(--step--1); color: var(--text-muted); }
+    .g-input {
+      background: var(--bg); color: var(--text); border: 1px solid var(--border);
+      border-radius: var(--radius-md); padding: 0.7rem 0.85rem; font: inherit; outline: none;
+      transition: border-color 140ms, box-shadow 140ms;
+    }
+    .g-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+
+    @media (max-width: 560px) { .type-row { grid-template-columns: 1fr; gap: 0.2rem; } }
+  </style>
+
+  <script is:inline>
+    document.querySelectorAll('.swatch').forEach((b) => {
+      b.addEventListener('click', () => {
+        const p = JSON.parse(b.dataset.palette);
+        const r = document.documentElement.style;
+        r.setProperty('--bg', p.bg);
+        r.setProperty('--surface', p.surface);
+        r.setProperty('--text', p.text);
+        r.setProperty('--text-muted', p.muted);
+        r.setProperty('--border', p.border);
+        r.setProperty('--accent', p.accent);
+        r.setProperty('--focus', p.accent);
+        r.setProperty('--accent-contrast', p.bg);
+        document.documentElement.style.colorScheme = p.light ? 'light' : 'dark';
+      });
+    });
+  </script>
+</BaseLayout>
