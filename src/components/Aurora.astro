@@ -1,14 +1,13 @@
 ---
 /**
- * Aurora — a living mesh of reds (red · rose · deep-rose · pink).
+ * Aurora — a living, layered ambient background:
+ *   1. drifting mesh of reds (red · rose · deep-rose · pink) — the "engine"
+ *   2. a soft spotlight that follows the pointer
+ *   3. a faint technical dot-grid for structure
+ *   4. filmic grain for tactile depth
  *
- * Four heavily-blurred blobs are retargeted to new random positions/scales on a
- * short interval (the "engine"); each blob tweens at its own speed via GPU
- * transitions, so the field drifts continuously, organically, and never
- * repeats. Frozen when the visitor prefers reduced motion. Decorative only.
- *
- * Place inside a `position: relative; overflow: hidden` container; content sits
- * in a layer above it.
+ * Fixed, site-wide, behind all content. Motion (drift + spotlight) freezes for
+ * reduced-motion; grid + grain remain (they're static). Decorative only.
  */
 ---
 
@@ -17,6 +16,9 @@
   <span class="aurora__blob b"></span>
   <span class="aurora__blob c"></span>
   <span class="aurora__blob d"></span>
+  <span class="aurora__spot"></span>
+  <span class="aurora__grid"></span>
+  <span class="aurora__grain"></span>
 </div>
 
 <style>
@@ -27,23 +29,57 @@
     pointer-events: none;
     z-index: 0;
   }
-  .aurora__blob {
+  .aurora > * {
     position: absolute;
+    inset: 0;
+  }
+
+  .aurora__blob {
     width: 60%;
     aspect-ratio: 1;
+    inset: auto;
     border-radius: 50%;
     filter: blur(66px);
     transform: translate(-50%, -50%) translate(var(--tx, 0%), var(--ty, 0%)) scale(var(--s, 1));
     transition: transform var(--dur, 6s) cubic-bezier(0.45, 0, 0.55, 1);
     will-change: transform;
   }
-  /* Red family — blends smoothly with no muddy midpoint. */
   .aurora__blob.a { left: 20%; top: 24%; --dur: 5s;   background: radial-gradient(circle, rgba(214, 74, 63, 0.42), transparent 68%); }
   .aurora__blob.b { left: 70%; top: 40%; --dur: 6.5s; background: radial-gradient(circle, rgba(240, 142, 134, 0.36), transparent 68%); }
   .aurora__blob.c { left: 40%; top: 78%; --dur: 4.5s; background: radial-gradient(circle, rgba(168, 58, 74, 0.36), transparent 70%); }
   .aurora__blob.d { left: 82%; top: 80%; --dur: 7s;   background: radial-gradient(circle, rgba(233, 108, 122, 0.32), transparent 70%); }
+
+  /* Pointer-following spotlight (starts centred). */
+  .aurora__spot {
+    background: radial-gradient(
+      42vmax circle at var(--mx, 50%) var(--my, 42%),
+      rgba(240, 150, 140, 0.12),
+      transparent 55%
+    );
+    transition: background 240ms ease-out;
+  }
+
+  /* Faint adaptive dot-grid for structure. */
+  .aurora__grid {
+    background-image: radial-gradient(
+      color-mix(in srgb, var(--text) 9%, transparent) 1px,
+      transparent 1.4px
+    );
+    background-size: 26px 26px;
+    mask-image: radial-gradient(120% 90% at 50% 30%, #000 55%, transparent 100%);
+    -webkit-mask-image: radial-gradient(120% 90% at 50% 30%, #000 55%, transparent 100%);
+    opacity: 0.6;
+  }
+
+  /* Filmic grain. */
+  .aurora__grain {
+    opacity: 0.05;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .aurora__blob { transition: none; }
+    .aurora__blob,
+    .aurora__spot { transition: none; }
   }
 </style>
 
@@ -53,6 +89,8 @@
     window.__aurora = true;
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const rand = (min, max) => (Math.random() * (max - min) + min).toFixed(2);
+
+    // 1. Drift engine
     function tick() {
       document.querySelectorAll('.aurora__blob').forEach((b) => {
         b.style.setProperty('--tx', rand(-48, 48) + '%');
@@ -62,5 +100,29 @@
     }
     tick();
     if (!reduce) setInterval(tick, 3800);
+
+    // 2. Pointer spotlight
+    if (!reduce && window.matchMedia('(pointer: fine)').matches) {
+      let raf = 0;
+      let mx = 50;
+      let my = 42;
+      window.addEventListener(
+        'pointermove',
+        (e) => {
+          mx = (e.clientX / window.innerWidth) * 100;
+          my = (e.clientY / window.innerHeight) * 100;
+          if (!raf) {
+            raf = requestAnimationFrame(() => {
+              document.querySelectorAll('.aurora__spot').forEach((s) => {
+                s.style.setProperty('--mx', mx + '%');
+                s.style.setProperty('--my', my + '%');
+              });
+              raf = 0;
+            });
+          }
+        },
+        { passive: true },
+      );
+    }
   })();
 </script>
