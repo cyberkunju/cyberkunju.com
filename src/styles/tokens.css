@@ -58,44 +58,44 @@
   --dur-fast: 120ms;
   --dur: 220ms;
 
-  /* Color — Paper (light) */
-  --bg: #f7f6f3;
-  --surface: #ffffff;
-  --text: #17181c;
-  --text-muted: #5b616e;
-  --border: #e6e4de;
-  --accent: #c2542f;
+  /* Color — Monochrome (light). The ink is the accent. */
+  --bg: #ffffff;
+  --surface: #f5f5f5;
+  --text: #0a0a0a;
+  --text-muted: #6e6e6e;
+  --border: #e3e3e3;
+  --accent: #0a0a0a;
   --accent-contrast: #ffffff;
-  --focus: #c2542f;
-  --selection: #f3d9cf;
+  --focus: #0a0a0a;
+  --selection: #dcdcdc;
 }
 
 :root.dark {
   color-scheme: dark;
-  /* Color — Paper (dark) — warm ink twin, same terracotta accent */
-  --bg: #171614;
-  --surface: #201f1c;
-  --text: #ecebe6;
-  --text-muted: #9c968c;
-  --border: #2c2a26;
-  --accent: #e2724d;
-  --accent-contrast: #1a1815;
-  --focus: #e2724d;
-  --selection: #3a2a22;
+  /* Color — Monochrome (dark). The ink is the accent, inverted. */
+  --bg: #000000;
+  --surface: #111111;
+  --text: #f7f7f7;
+  --text-muted: #9a9a9a;
+  --border: #262626;
+  --accent: #f7f7f7;
+  --accent-contrast: #000000;
+  --focus: #f7f7f7;
+  --selection: #2b2b2b;
 }
 
 /* Respect system preference when the user has not chosen explicitly. */
 @media (prefers-color-scheme: dark) {
   :root:not(.light):not(.dark) {
     color-scheme: dark;
-    --bg: #171614;
-    --surface: #201f1c;
-    --text: #ecebe6;
-    --text-muted: #9c968c;
-    --border: #2c2a26;
-    --accent: #e2724d;
-    --accent-contrast: #1a1815;
-    --focus: #e2724d;
-    --selection: #3a2a22;
+    --bg: #000000;
+    --surface: #111111;
+    --text: #f7f7f7;
+    --text-muted: #9a9a9a;
+    --border: #262626;
+    --accent: #f7f7f7;
+    --accent-contrast: #000000;
+    --focus: #f7f7f7;
+    --selection: #2b2b2b;
   }
 }
