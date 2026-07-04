@@ -55,8 +55,8 @@ export const SYSTEM: FontOption = {
   family: SANS,
 };
 
-/** The premium default applied before any explicit choice. */
-export const DEFAULT_FONT_ID = 'general-sans';
+/** Finalized brand typeface — the site default (also set in tokens.css). */
+export const DEFAULT_FONT_ID = 'pally';
 
 export const fonts: readonly FontOption[] = [
   SYSTEM,

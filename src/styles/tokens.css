@@ -9,8 +9,10 @@
   color-scheme: light;
 
   /* Type: system stack, fluid scale via clamp() */
+  /* Brand typeface: Pally (Fontshare). Loaded in BaseLayout; system stack is the
+     fallback until it arrives (font-display: swap). */
   --font-sans:
-    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
+    "Pally", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
     "Apple Color Emoji", "Segoe UI Emoji";
   --font-mono:
     ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", "Fira Code", Menlo, Consolas,

@@ -43,18 +43,24 @@ const { title, description, image, type, noindex, publishedTime, modifiedTime, j
         } catch {}
       })();
     </script>
+    {/* Finalized brand typeface: Pally. Served via Fontshare (self-host later
+        from a network that can reach cdn.fontshare.com). */}
+    <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
+    <link rel="preconnect" href="https://cdn.fontshare.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://api.fontshare.com/v2/css?f[]=pally@400,500,700&display=swap"
+    />
+
+    {/* Font switcher (design tool): apply a user-chosen font before paint, if one
+        was picked. Absent a choice, the CSS default (Pally) already applies. */}
     <script is:inline>
       (() => {
-        // Premium default (General Sans) until the switcher records a choice.
-        var defFam = "'General Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
-        var defHref = 'https://api.fontshare.com/v2/css?f[]=general-sans@400,500,700&display=swap';
         try {
           var fam = localStorage.getItem('font.family');
           var href = localStorage.getItem('font.href');
-          if (fam === null) fam = defFam;
-          if (href === null) href = defHref;
-          document.documentElement.style.setProperty('--font-sans', fam);
-          if (href) {
+          if (fam && href) {
+            document.documentElement.style.setProperty('--font-sans', fam);
             var l = document.createElement('link');
             l.rel = 'stylesheet';
             l.href = href;
