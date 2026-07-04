@@ -14,35 +14,53 @@ body {
   background: var(--selection);
 }
 
-/* The accent identity: a red → rose gradient whose angle slowly rotates, so
-   the colour lives and turns through the letters rather than sliding past.
-   Clipped to text; shared by link hover, active nav, and .grad-text (the
-   ghost button below carries its own copy to win the .button cascade). */
-@property --accent-angle {
-  syntax: "<angle>";
-  inherits: false;
-  initial-value: 120deg;
-}
+/* The accent identity: red → rose "plasma". Three rose/coral light-blobs
+   drift over a red base at three different tempos (6/8/10s), clipped to the
+   text, so the colour churns and glows inside the letters instead of sliding
+   past. Reads even on short words. Shared by link hover, active nav, the
+   ghost button (higher specificity to win the .button cascade), and .grad-text.
+   The global reduced-motion rule freezes the drift to a static plasma. */
+@property --ax { syntax: "<percentage>"; inherits: false; initial-value: 22%; }
+@property --ay { syntax: "<percentage>"; inherits: false; initial-value: 28%; }
+@property --bx { syntax: "<percentage>"; inherits: false; initial-value: 78%; }
+@property --by { syntax: "<percentage>"; inherits: false; initial-value: 36%; }
+@property --cx { syntax: "<percentage>"; inherits: false; initial-value: 48%; }
+@property --cy { syntax: "<percentage>"; inherits: false; initial-value: 82%; }
+
 :where(a):not(.button):hover,
 .nav a[aria-current="page"],
+.button.button--ghost:hover,
 .grad-text {
-  background: linear-gradient(
-    var(--accent-angle),
-    var(--acc-1),
-    var(--acc-2),
-    var(--acc-3),
-    var(--acc-2),
-    var(--acc-1)
-  );
+  background:
+    radial-gradient(60% 130% at var(--ax) var(--ay), var(--acc-3), transparent 60%),
+    radial-gradient(58% 120% at var(--bx) var(--by), var(--acc-2), transparent 58%),
+    radial-gradient(66% 140% at var(--cx) var(--cy), var(--acc-3), transparent 62%),
+    var(--acc-1);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   color: transparent;
-  animation: accent-flow 7s linear infinite;
+  animation:
+    churn-a 6s ease-in-out infinite alternate,
+    churn-b 8s ease-in-out infinite alternate,
+    churn-c 10s ease-in-out infinite alternate;
 }
-@keyframes accent-flow {
+@keyframes churn-a {
   to {
-    --accent-angle: 480deg;
+    --ax: 64%;
+    --ay: 74%;
+  }
+}
+@keyframes churn-b {
+  to {
+    --bx: 30%;
+    --by: 74%;
+  }
+}
+@keyframes churn-c {
+  to {
+    --cx: 72%;
+    --cy: 22%;
   }
 }
 
@@ -216,19 +234,6 @@ main {
 .button--ghost:hover {
   opacity: 1;
   border-color: var(--accent);
-  background: linear-gradient(
-    var(--accent-angle),
-    var(--acc-1),
-    var(--acc-2),
-    var(--acc-3),
-    var(--acc-2),
-    var(--acc-1)
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-  animation: accent-flow 7s linear infinite;
 }
 
 .muted {
