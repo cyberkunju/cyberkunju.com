@@ -14,8 +14,13 @@ body {
   background: var(--selection);
 }
 
-:where(a):hover {
-  color: var(--accent);
+/* Links bloom into the red → rose gradient on hover (buttons keep their own style). */
+:where(a):not(.button):hover {
+  background: var(--accent-grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 
 /* Visible, consistent focus for keyboard users. */
@@ -112,7 +117,11 @@ main {
 }
 
 .nav a[aria-current="page"] {
-  color: var(--accent);
+  background: var(--accent-grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 
 .site-footer {
@@ -189,15 +198,19 @@ main {
 }
 .button--ghost:hover {
   opacity: 1;
-  color: var(--accent);
   border-color: var(--accent);
+  background: var(--accent-grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 
 .muted {
   color: var(--text-muted);
 }
 
-/* Gradient accent (red → neon-green), used sparingly for signature touches. */
+/* Gradient accent (red → rose), the shared accent identity. */
 .grad-text {
   background: var(--accent-grad);
   -webkit-background-clip: text;

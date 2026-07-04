@@ -1,10 +1,12 @@
 ---
 /**
  * Aurora — living ambient background:
- *   1. drifting mesh of reds (red · rose · deep-rose · pink)
+ *   1. drifting mesh of neutral (black/white) glows — pure grayscale, no colour
  *   2. a real cursive "cyberkunju" signature (Sacramento script, traced as a
  *      single stroke via stroke-dashoffset) — slowly penned, faint, then it
- *      fades and re-signs at a new random spot. Not a wipe reveal.
+ *      fades and re-signs at a new random spot. Not a wipe reveal. The stroke
+ *      carries the site's red → rose accent gradient — the only colour on the
+ *      page's background layer.
  *   3. filmic grain
  *
  * The signature path is baked outline data generated once from the Sacramento
@@ -25,10 +27,9 @@ const sigPath =
     <svg viewBox="6.9 37.1 495.7 191.4" fill="none" preserveAspectRatio="xMidYMid meet">
       <defs>
         <linearGradient id="auroraSig" x1="0" y1="0" x2="1" y2="0.35">
-          <stop offset="0" stop-color="#d64a3f" />
-          <stop offset="0.4" stop-color="#ff4d43" />
-          <stop offset="0.7" stop-color="#e96c7a" />
-          <stop offset="1" stop-color="#a83a4a" />
+          <stop offset="0" stop-color="#e5352b" />
+          <stop offset="0.5" stop-color="#ff5a4d" />
+          <stop offset="1" stop-color="#ef7a86" />
         </linearGradient>
       </defs>
       <path pathLength="1" d={sigPath} />
@@ -57,11 +58,12 @@ const sigPath =
     transition: transform var(--dur, 6s) cubic-bezier(0.45, 0, 0.55, 1);
     will-change: transform;
   }
-  /* Core is black & white; the reds are a faint accent breath, not a wash. */
-  .aurora__blob.a { left: 20%; top: 24%; --dur: 5s;   background: radial-gradient(circle, rgba(214, 74, 63, 0.11), transparent 68%); }
-  .aurora__blob.b { left: 70%; top: 40%; --dur: 6.5s; background: radial-gradient(circle, rgba(240, 142, 134, 0.09), transparent 68%); }
-  .aurora__blob.c { left: 40%; top: 78%; --dur: 4.5s; background: radial-gradient(circle, rgba(168, 58, 74, 0.10), transparent 70%); }
-  .aurora__blob.d { left: 82%; top: 80%; --dur: 7s;   background: radial-gradient(circle, rgba(233, 108, 122, 0.08), transparent 70%); }
+  /* Pure grayscale ambient — neutral glows in shades of the page's own ink.
+     No colour lives here; red → rose is reserved for accents + the signature. */
+  .aurora__blob.a { left: 20%; top: 24%; --dur: 5s;   background: radial-gradient(circle, rgba(var(--aurora-tint), 0.05), transparent 68%); }
+  .aurora__blob.b { left: 70%; top: 40%; --dur: 6.5s; background: radial-gradient(circle, rgba(var(--aurora-tint), 0.045), transparent 68%); }
+  .aurora__blob.c { left: 40%; top: 78%; --dur: 4.5s; background: radial-gradient(circle, rgba(var(--aurora-tint), 0.05), transparent 70%); }
+  .aurora__blob.d { left: 82%; top: 80%; --dur: 7s;   background: radial-gradient(circle, rgba(var(--aurora-tint), 0.04), transparent 70%); }
 
   /* Penned cursive signature — real letterforms, small, faint, slow. */
   .aurora__sig {

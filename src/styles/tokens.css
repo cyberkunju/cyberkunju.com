@@ -68,7 +68,10 @@
   --accent-contrast: #ffffff;
   --focus: #e5352b;
   --selection: #ffd9d5;
-  --accent-grad: linear-gradient(115deg, #c74a3e, #ea8b86);
+  /* The one accent identity: a red → light-red → rose gradient. */
+  --accent-grad: linear-gradient(115deg, #e5352b, #ff5a4d, #ef7a86);
+  /* Neutral ink used for the grayscale ambient background (no colour). */
+  --aurora-tint: 10, 10, 10;
 }
 
 :root.dark {
@@ -83,7 +86,8 @@
   --accent-contrast: #ffffff;
   --focus: #ff4d43;
   --selection: #3a1a17;
-  --accent-grad: linear-gradient(115deg, #e05a4c, #f0968f);
+  --accent-grad: linear-gradient(115deg, #ff4d43, #ff756b, #f5949c);
+  --aurora-tint: 240, 240, 240;
 }
 
 /* Respect system preference when the user has not chosen explicitly. */
@@ -99,6 +103,7 @@
     --accent-contrast: #ffffff;
     --focus: #ff4d43;
     --selection: #3a1a17;
-    --accent-grad: linear-gradient(115deg, #e05a4c, #f0968f);
+    --accent-grad: linear-gradient(115deg, #ff4d43, #ff756b, #f5949c);
+    --aurora-tint: 240, 240, 240;
   }
 }
