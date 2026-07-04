@@ -23,6 +23,14 @@ const sigPath =
 
   <span class="aurora__sig">
     <svg viewBox="6.9 37.1 495.7 191.4" fill="none" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <linearGradient id="auroraSig" x1="0" y1="0" x2="1" y2="0.35">
+          <stop offset="0" stop-color="#d64a3f" />
+          <stop offset="0.4" stop-color="#ff4d43" />
+          <stop offset="0.7" stop-color="#e96c7a" />
+          <stop offset="1" stop-color="#a83a4a" />
+        </linearGradient>
+      </defs>
       <path pathLength="1" d={sigPath} />
     </svg>
   </span>
@@ -49,10 +57,11 @@ const sigPath =
     transition: transform var(--dur, 6s) cubic-bezier(0.45, 0, 0.55, 1);
     will-change: transform;
   }
-  .aurora__blob.a { left: 20%; top: 24%; --dur: 5s;   background: radial-gradient(circle, rgba(214, 74, 63, 0.42), transparent 68%); }
-  .aurora__blob.b { left: 70%; top: 40%; --dur: 6.5s; background: radial-gradient(circle, rgba(240, 142, 134, 0.36), transparent 68%); }
-  .aurora__blob.c { left: 40%; top: 78%; --dur: 4.5s; background: radial-gradient(circle, rgba(168, 58, 74, 0.36), transparent 70%); }
-  .aurora__blob.d { left: 82%; top: 80%; --dur: 7s;   background: radial-gradient(circle, rgba(233, 108, 122, 0.32), transparent 70%); }
+  /* Core is black & white; the reds are a faint accent breath, not a wash. */
+  .aurora__blob.a { left: 20%; top: 24%; --dur: 5s;   background: radial-gradient(circle, rgba(214, 74, 63, 0.11), transparent 68%); }
+  .aurora__blob.b { left: 70%; top: 40%; --dur: 6.5s; background: radial-gradient(circle, rgba(240, 142, 134, 0.09), transparent 68%); }
+  .aurora__blob.c { left: 40%; top: 78%; --dur: 4.5s; background: radial-gradient(circle, rgba(168, 58, 74, 0.10), transparent 70%); }
+  .aurora__blob.d { left: 82%; top: 80%; --dur: 7s;   background: radial-gradient(circle, rgba(233, 108, 122, 0.08), transparent 70%); }
 
   /* Penned cursive signature — real letterforms, small, faint, slow. */
   .aurora__sig {
@@ -63,12 +72,11 @@ const sigPath =
     opacity: 0;
     transform: translate(-50%, -50%) rotate(var(--rot, -6deg)) scale(var(--sc, 1));
     will-change: opacity;
-    color: var(--accent);
   }
   .aurora__sig svg { width: 100%; height: auto; display: block; overflow: visible; }
   .aurora__sig path {
     fill: none;
-    stroke: currentColor;
+    stroke: url(#auroraSig);
     stroke-width: 1.4;
     stroke-linecap: round;
     stroke-linejoin: round;
@@ -85,8 +93,8 @@ const sigPath =
   }
   @keyframes sig-fade {
     0% { opacity: 0; }
-    8% { opacity: 0.18; }
-    80% { opacity: 0.18; }
+    8% { opacity: 0.12; }
+    80% { opacity: 0.12; }
     100% { opacity: 0; }
   }
 
