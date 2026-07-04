@@ -1,4 +1,5 @@
 ---
+import Aurora from '../components/Aurora.astro';
 import Footer from '../components/Footer.astro';
 import Header from '../components/Header.astro';
 import JsonLd from '../components/JsonLd.astro';
@@ -57,6 +58,7 @@ const { title, description, image, type, noindex, publishedTime, modifiedTime, j
   </head>
 
   <body>
+    <Aurora />
     <a class="skip-link" href="#main">Skip to content</a>
     <Header />
     <main id="main" class="container">

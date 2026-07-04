@@ -21,7 +21,7 @@
 
 <style>
   .aurora {
-    position: absolute;
+    position: fixed;
     inset: 0;
     overflow: hidden;
     pointer-events: none;
@@ -38,10 +38,10 @@
     will-change: transform;
   }
   /* Red family — blends smoothly with no muddy midpoint. */
-  .aurora__blob.a { left: 20%; top: 24%; --dur: 5s;   background: radial-gradient(circle, rgba(214, 74, 63, 0.58), transparent 68%); }
-  .aurora__blob.b { left: 70%; top: 40%; --dur: 6.5s; background: radial-gradient(circle, rgba(240, 142, 134, 0.52), transparent 68%); }
-  .aurora__blob.c { left: 40%; top: 78%; --dur: 4.5s; background: radial-gradient(circle, rgba(168, 58, 74, 0.5), transparent 70%); }
-  .aurora__blob.d { left: 82%; top: 80%; --dur: 7s;   background: radial-gradient(circle, rgba(233, 108, 122, 0.46), transparent 70%); }
+  .aurora__blob.a { left: 20%; top: 24%; --dur: 5s;   background: radial-gradient(circle, rgba(214, 74, 63, 0.42), transparent 68%); }
+  .aurora__blob.b { left: 70%; top: 40%; --dur: 6.5s; background: radial-gradient(circle, rgba(240, 142, 134, 0.36), transparent 68%); }
+  .aurora__blob.c { left: 40%; top: 78%; --dur: 4.5s; background: radial-gradient(circle, rgba(168, 58, 74, 0.36), transparent 70%); }
+  .aurora__blob.d { left: 82%; top: 80%; --dur: 7s;   background: radial-gradient(circle, rgba(233, 108, 122, 0.32), transparent 70%); }
   @media (prefers-reduced-motion: reduce) {
     .aurora__blob { transition: none; }
   }
