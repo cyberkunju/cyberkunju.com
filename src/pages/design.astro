@@ -31,6 +31,13 @@ const typeScale = [
         <div class="role"><span class="role__box" style="background:var(--text-muted)"></span><span class="k">--text-muted</span></div>
         <div class="role"><span class="role__box" style="background:var(--border)"></span><span class="k">--border</span></div>
         <div class="role"><span class="role__box" style="background:var(--accent)"></span><span class="k">--accent</span></div>
+        <div class="role"><span class="role__box" style="background:var(--accent-grad)"></span><span class="k">--accent-grad</span></div>
+      </div>
+      <p class="cap">Accent = red → neon-green gradient, used sparingly (link underlines, header hairline, marks).</p>
+      <div class="demo" style="display:flex;flex-direction:column;gap:0.9rem">
+        <div style="height:8px;border-radius:999px;background:var(--accent-grad)"></div>
+        <div class="grad-text" style="font-size:var(--step-2);font-weight:700;width:max-content">Aa gradient</div>
+        <p>Inline <a class="u-grad" href="#">gradient link</a> — hover it to see it bloom.</p>
       </div>
     </section>
 

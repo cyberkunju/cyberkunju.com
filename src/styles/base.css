@@ -84,6 +84,15 @@ h3 {
   background: color-mix(in srgb, var(--bg) 82%, transparent);
   border-block-end: var(--border-width) solid var(--border);
 }
+/* Signature: a thin red → neon-green gradient hairline under the header. */
+.site-header::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: -1px;
+  height: 1px;
+  background: var(--accent-grad);
+}
 
 .site-header__inner,
 .site-footer__inner {
@@ -187,6 +196,31 @@ h3 {
 
 .muted {
   color: var(--text-muted);
+}
+
+/* Gradient accent (red → neon-green), used sparingly for signature touches. */
+.grad-text {
+  background: var(--accent-grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+/* Link with a gradient underline that blooms into gradient text on hover. */
+.u-grad {
+  color: var(--text);
+  text-decoration: none;
+  background: var(--accent-grad) no-repeat left 100% / 100% 2px;
+  padding-bottom: 1px;
+  transition: color var(--dur) var(--ease);
+}
+.u-grad:hover {
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-size: 100% 100%;
+  background-position: center;
 }
 
 .eyebrow {
