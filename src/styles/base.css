@@ -14,13 +14,24 @@ body {
   background: var(--selection);
 }
 
-/* Links bloom into the red → rose gradient on hover (buttons keep their own style). */
-:where(a):not(.button):hover {
+/* The accent identity: a red → rose gradient that slowly flows, clipped to
+   text. Shared by link hover, active nav, and .grad-text (ghost button below
+   carries its own copy to win the .button cascade). */
+:where(a):not(.button):hover,
+.nav a[aria-current="page"],
+.grad-text {
   background: var(--accent-grad);
+  background-size: 220% auto;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   color: transparent;
+  animation: accent-flow 6s linear infinite;
+}
+@keyframes accent-flow {
+  to {
+    background-position: 220% center;
+  }
 }
 
 /* Visible, consistent focus for keyboard users. */
@@ -116,13 +127,7 @@ main {
   gap: var(--space-md);
 }
 
-.nav a[aria-current="page"] {
-  background: var(--accent-grad);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-}
+/* Active nav + .grad-text accents are styled by the shared gradient rule above. */
 
 .site-footer {
   position: relative;
@@ -200,24 +205,18 @@ main {
   opacity: 1;
   border-color: var(--accent);
   background: var(--accent-grad);
+  background-size: 220% auto;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   color: transparent;
+  animation: accent-flow 6s linear infinite;
 }
 
 .muted {
   color: var(--text-muted);
 }
 
-/* Gradient accent (red → rose), the shared accent identity. */
-.grad-text {
-  background: var(--accent-grad);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-}
 /* Link with a gradient underline that blooms into gradient text on hover. */
 .u-grad {
   color: var(--text);

@@ -68,8 +68,9 @@
   --accent-contrast: #ffffff;
   --focus: #e5352b;
   --selection: #ffd9d5;
-  /* The one accent identity: a red → light-red → rose gradient. */
-  --accent-grad: linear-gradient(115deg, #e5352b, #ff5a4d, #ef7a86);
+  /* The one accent identity: a flowing red → light-red → rose gradient.
+     Symmetric stops so an animated background-position loops seamlessly. */
+  --accent-grad: linear-gradient(115deg, #c81e12, #ff5a4d, #ff96a4, #ff5a4d, #c81e12);
   /* Neutral ink used for the grayscale ambient background (no colour). */
   --aurora-tint: 10, 10, 10;
 }
@@ -86,7 +87,7 @@
   --accent-contrast: #ffffff;
   --focus: #ff4d43;
   --selection: #3a1a17;
-  --accent-grad: linear-gradient(115deg, #ff4d43, #ff756b, #f5949c);
+  --accent-grad: linear-gradient(115deg, #ff2f24, #ff756b, #ffb0b8, #ff756b, #ff2f24);
   --aurora-tint: 240, 240, 240;
 }
 
@@ -103,7 +104,7 @@
     --accent-contrast: #ffffff;
     --focus: #ff4d43;
     --selection: #3a1a17;
-    --accent-grad: linear-gradient(115deg, #ff4d43, #ff756b, #f5949c);
+    --accent-grad: linear-gradient(115deg, #ff2f24, #ff756b, #ffb0b8, #ff756b, #ff2f24);
     --aurora-tint: 240, 240, 240;
   }
 }
