@@ -20,12 +20,36 @@ body {
    past. Reads even on short words. Shared by link hover, active nav, the
    ghost button (higher specificity to win the .button cascade), and .grad-text.
    The global reduced-motion rule freezes the drift to a static plasma. */
-@property --ax { syntax: "<percentage>"; inherits: false; initial-value: 22%; }
-@property --ay { syntax: "<percentage>"; inherits: false; initial-value: 28%; }
-@property --bx { syntax: "<percentage>"; inherits: false; initial-value: 78%; }
-@property --by { syntax: "<percentage>"; inherits: false; initial-value: 36%; }
-@property --cx { syntax: "<percentage>"; inherits: false; initial-value: 48%; }
-@property --cy { syntax: "<percentage>"; inherits: false; initial-value: 82%; }
+@property --ax {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 22%;
+}
+@property --ay {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 28%;
+}
+@property --bx {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 78%;
+}
+@property --by {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 36%;
+}
+@property --cx {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 48%;
+}
+@property --cy {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 82%;
+}
 
 :where(a):not(.button):hover,
 .nav a[aria-current="page"],
@@ -34,8 +58,7 @@ body {
   background:
     radial-gradient(60% 130% at var(--ax) var(--ay), var(--acc-3), transparent 60%),
     radial-gradient(58% 120% at var(--bx) var(--by), var(--acc-2), transparent 58%),
-    radial-gradient(66% 140% at var(--cx) var(--cy), var(--acc-3), transparent 62%),
-    var(--acc-1);
+    radial-gradient(66% 140% at var(--cx) var(--cy), var(--acc-3), transparent 62%), var(--acc-1);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
