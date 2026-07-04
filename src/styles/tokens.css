@@ -68,7 +68,7 @@
   --accent-contrast: #ffffff;
   --focus: #e5352b;
   --selection: #ffd9d5;
-  --accent-grad: linear-gradient(90deg, #e5352b, #16c060);
+  --accent-grad: linear-gradient(100deg, #e5352b 50%, #12b84e 50%);
 }
 
 :root.dark {
@@ -83,7 +83,7 @@
   --accent-contrast: #ffffff;
   --focus: #ff4d43;
   --selection: #3a1a17;
-  --accent-grad: linear-gradient(100deg, #ff4d43, #39ff14);
+  --accent-grad: linear-gradient(100deg, #ff4d43 50%, #39ff14 50%);
 }
 
 /* Respect system preference when the user has not chosen explicitly. */
@@ -99,6 +99,6 @@
     --accent-contrast: #ffffff;
     --focus: #ff4d43;
     --selection: #3a1a17;
-    --accent-grad: linear-gradient(100deg, #ff4d43, #39ff14);
+    --accent-grad: linear-gradient(100deg, #ff4d43 50%, #39ff14 50%);
   }
 }
