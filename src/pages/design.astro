@@ -1,50 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 
-// 100 candidate palettes — each with a matching light + dark role set,
-// generated from a curated grid of accent hues × neutral temperatures.
-const hsl = (h: number, s: number, l: number) => `hsl(${h} ${s}% ${l}%)`;
-const accents: [string, number, number][] = [
-  ['Indigo', 245, 72], ['Violet', 266, 62], ['Blue', 216, 76], ['Azure', 205, 80],
-  ['Cyan', 190, 68], ['Teal', 172, 56], ['Emerald', 156, 54], ['Green', 142, 50],
-  ['Lime', 96, 52], ['Amber', 42, 84], ['Orange', 26, 82], ['Coral', 12, 74],
-  ['Rose', 350, 68], ['Magenta', 322, 60],
-];
-const neutrals: [string, number, number][] = [
-  ['Slate', 222, 12], ['Cool', 210, 7], ['Neutral', 0, 0], ['Zinc', 250, 4],
-  ['Stone', 30, 8], ['Warm', 34, 12], ['Olive', 84, 7],
-];
-
-type Roles = { bg: string; surface: string; text: string; muted: string; border: string; accent: string; ac: string };
-type Palette = { id: string; name: string; light: Roles; dark: Roles };
-
-const palettes: Palette[] = [];
-for (const [nName, nH, nS] of neutrals) {
-  for (const [aName, aH, aS] of accents) {
-    palettes.push({
-      id: `P${palettes.length + 1}`,
-      name: `${aName} · ${nName}`,
-      light: {
-        bg: hsl(nH, nS, 97.5), surface: hsl(nH, nS, 100), text: hsl(nH, Math.min(nS + 6, 22), 13),
-        muted: hsl(nH, nS, 44), border: hsl(nH, nS, 88), accent: hsl(aH, aS, 47), ac: '#ffffff',
-      },
-      dark: {
-        bg: hsl(nH, nS + 2, 8), surface: hsl(nH, nS + 2, 12), text: hsl(nH, nS, 92),
-        muted: hsl(nH, nS, 60), border: hsl(nH, nS + 2, 20), accent: hsl(aH, Math.min(aS + 4, 92), 64), ac: hsl(nH, nS, 9),
-      },
-    });
-  }
-}
-palettes.push({
-  id: 'P99', name: 'Mono · Ink',
-  light: { bg: '#faf9f7', surface: '#ffffff', text: '#111114', muted: '#565660', border: '#e5e3de', accent: '#141417', ac: '#ffffff' },
-  dark: { bg: '#0c0c0d', surface: '#151517', text: '#f0f0f2', muted: '#8f8f96', border: '#242427', accent: '#f0f0f2', ac: '#0c0c0d' },
-});
-palettes.push({
-  id: 'P100', name: 'Contrast · Snow',
-  light: { bg: '#ffffff', surface: '#f4f4f5', text: '#09090b', muted: '#52525b', border: '#e4e4e7', accent: '#2563eb', ac: '#ffffff' },
-  dark: { bg: '#000000', surface: '#0e0e11', text: '#fafafa', muted: '#a1a1aa', border: '#26262b', accent: '#3b82f6', ac: '#000000' },
-});
+// Locked theme: pure black & white with a slight red accent (see tokens.css).
 
 const typeScale = [
   { name: '--step-4', label: 'Display / H1' },
@@ -64,41 +21,9 @@ const typeScale = [
       <p class="muted">Every element with your current tokens. Click a palette to preview it live, toggle light/dark in the header, and tell me what to change.</p>
     </header>
 
-    <!-- PALETTE PREVIEWER -->
+    <!-- LOCKED PALETTE -->
     <section class="guide__section">
-      <span class="guide__label">01 · Palettes — 100 options <em>(click any to preview the whole page live)</em></span>
-      <div class="pmode">
-        <span class="pmode__lbl">Preview&nbsp;mode</span>
-        <button class="pmode__btn is-active" id="mode-light" type="button">Light</button>
-        <button class="pmode__btn" id="mode-dark" type="button">Dark</button>
-        <button class="pmode__btn" id="mode-reset" type="button">Reset</button>
-        <span class="pmode__cur" id="pmode-cur">— none selected —</span>
-      </div>
-      <div class="pal-grid">
-        {palettes.map((p) => (
-          <button class="pal" type="button" data-p={JSON.stringify(p)} title={`${p.id} · ${p.name}`}>
-            <span class="pal__rows">
-              <span class="pal__row" style={`background:${p.light.bg}`}>
-                <i style={`background:${p.light.surface};border-color:${p.light.border}`}></i>
-                <i style={`background:${p.light.text}`}></i>
-                <i style={`background:${p.light.accent}`}></i>
-              </span>
-              <span class="pal__row" style={`background:${p.dark.bg}`}>
-                <i style={`background:${p.dark.surface};border-color:${p.dark.border}`}></i>
-                <i style={`background:${p.dark.text}`}></i>
-                <i style={`background:${p.dark.accent}`}></i>
-              </span>
-            </span>
-            <span class="pal__name"><b>{p.id}</b> {p.name}</span>
-          </button>
-        ))}
-      </div>
-      <p class="muted small">Each card shows light (top) + dark (bottom). Click to apply; use the toggle to flip the preview. Reset restores the site theme.</p>
-    </section>
-
-    <!-- CURRENT COLOR ROLES -->
-    <section class="guide__section">
-      <span class="guide__label">02 · Colour roles <em>(current)</em></span>
+      <span class="guide__label">01 · Palette <em>(locked — B&amp;W + slight red)</em></span>
       <div class="roles">
         <div class="role"><span class="role__box" style="background:var(--bg)"></span><span class="k">--bg</span></div>
         <div class="role"><span class="role__box" style="background:var(--surface)"></span><span class="k">--surface</span></div>
@@ -236,23 +161,6 @@ const typeScale = [
     .demo { padding: var(--space-lg); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); }
     .cap, .small { color: var(--text-muted); font-size: var(--step--1); margin-block-start: var(--space-sm); }
 
-    .pmode { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem;
-      padding: 0.6rem 0; margin-block-end: var(--space-md); background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(6px); }
-    .pmode__lbl { font-family: var(--font-mono); font-size: var(--step--1); color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; margin-inline-end: 0.3rem; }
-    .pmode__btn { font: inherit; font-size: var(--step--1); padding: 0.35rem 0.8rem; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; }
-    .pmode__btn.is-active { background: var(--accent); color: var(--accent-contrast); border-color: transparent; }
-    .pmode__cur { font-family: var(--font-mono); font-size: var(--step--1); color: var(--text-muted); margin-inline-start: auto; }
-
-    .pal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 9.5rem), 1fr)); gap: 0.7rem; }
-    .pal { display: flex; flex-direction: column; gap: 0.45rem; text-align: left; cursor: pointer;
-      padding: 0.5rem; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--surface);
-      transition: transform 120ms var(--ease), border-color 120ms; }
-    .pal:hover { transform: translateY(-2px); border-color: var(--accent); }
-    .pal__rows { display: flex; flex-direction: column; gap: 3px; border-radius: 8px; overflow: hidden; }
-    .pal__row { display: flex; gap: 3px; padding: 6px; }
-    .pal__row i { width: 100%; height: 16px; border-radius: 4px; border: 1px solid rgba(128,128,128,0.25); }
-    .pal__name { font-size: 0.72rem; color: var(--text-muted); line-height: 1.3; }
-    .pal__name b { color: var(--accent); font-family: var(--font-mono); }
 
     .roles { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 9rem), 1fr)); gap: var(--space-md); }
     .role { display: flex; flex-direction: column; gap: 0.4rem; }
@@ -276,48 +184,4 @@ const typeScale = [
     @media (max-width: 560px) { .type-row { grid-template-columns: 1fr; gap: 0.2rem; } }
   </style>
 
-  <script is:inline>
-    (() => {
-      const root = document.documentElement;
-      const cur = document.getElementById('pmode-cur');
-      let mode = 'light';
-      let current = null;
-      const props = ['--bg', '--surface', '--text', '--text-muted', '--border', '--accent', '--focus', '--accent-contrast'];
-
-      function apply(p, m) {
-        const s = p[m];
-        root.style.setProperty('--bg', s.bg);
-        root.style.setProperty('--surface', s.surface);
-        root.style.setProperty('--text', s.text);
-        root.style.setProperty('--text-muted', s.muted);
-        root.style.setProperty('--border', s.border);
-        root.style.setProperty('--accent', s.accent);
-        root.style.setProperty('--focus', s.accent);
-        root.style.setProperty('--accent-contrast', s.ac);
-        root.style.colorScheme = m === 'dark' ? 'dark' : 'light';
-        root.classList.toggle('dark', m === 'dark');
-        root.classList.toggle('light', m === 'light');
-        cur.textContent = p.id + ' · ' + p.name + ' · ' + m;
-      }
-      function reset() {
-        props.forEach((k) => root.style.removeProperty(k));
-        root.style.removeProperty('color-scheme');
-        root.classList.remove('light', 'dark');
-        current = null;
-        cur.textContent = '— none selected —';
-      }
-      function setMode(m) {
-        mode = m;
-        document.getElementById('mode-light').classList.toggle('is-active', m === 'light');
-        document.getElementById('mode-dark').classList.toggle('is-active', m === 'dark');
-        if (current) apply(current, mode);
-      }
-      document.getElementById('mode-light').addEventListener('click', () => setMode('light'));
-      document.getElementById('mode-dark').addEventListener('click', () => setMode('dark'));
-      document.getElementById('mode-reset').addEventListener('click', reset);
-      document.querySelectorAll('.pal').forEach((b) => {
-        b.addEventListener('click', () => { current = JSON.parse(b.dataset.p); apply(current, mode); });
-      });
-    })();
-  </script>
 </BaseLayout>

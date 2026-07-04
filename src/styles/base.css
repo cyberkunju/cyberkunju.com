@@ -166,18 +166,23 @@ h3 {
   padding: 0.55rem 1rem;
   font-weight: var(--weight-medium);
   border-radius: var(--radius-md);
-  background: var(--accent);
-  color: var(--accent-contrast);
-  transition: filter var(--dur-fast) var(--ease);
+  background: var(--text);
+  color: var(--bg);
+  transition: opacity var(--dur-fast) var(--ease);
 }
 .button:hover {
-  filter: brightness(1.05);
-  color: var(--accent-contrast);
+  opacity: 0.85;
+  color: var(--bg);
 }
 .button--ghost {
   background: transparent;
   color: var(--text);
   border: var(--border-width) solid var(--border);
+}
+.button--ghost:hover {
+  opacity: 1;
+  color: var(--accent);
+  border-color: var(--accent);
 }
 
 .muted {

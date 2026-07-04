@@ -64,10 +64,10 @@
   --text: #0a0a0a;
   --text-muted: #6e6e6e;
   --border: #e3e3e3;
-  --accent: #0a0a0a;
+  --accent: #e5352b;
   --accent-contrast: #ffffff;
-  --focus: #0a0a0a;
-  --selection: #dcdcdc;
+  --focus: #e5352b;
+  --selection: #ffd9d5;
 }
 
 :root.dark {
@@ -78,10 +78,10 @@
   --text: #f7f7f7;
   --text-muted: #9a9a9a;
   --border: #262626;
-  --accent: #f7f7f7;
-  --accent-contrast: #000000;
-  --focus: #f7f7f7;
-  --selection: #2b2b2b;
+  --accent: #ff4d43;
+  --accent-contrast: #ffffff;
+  --focus: #ff4d43;
+  --selection: #3a1a17;
 }
 
 /* Respect system preference when the user has not chosen explicitly. */
@@ -93,9 +93,9 @@
     --text: #f7f7f7;
     --text-muted: #9a9a9a;
     --border: #262626;
-    --accent: #f7f7f7;
-    --accent-contrast: #000000;
-    --focus: #f7f7f7;
-    --selection: #2b2b2b;
+    --accent: #ff4d43;
+    --accent-contrast: #ffffff;
+    --focus: #ff4d43;
+    --selection: #3a1a17;
   }
 }
