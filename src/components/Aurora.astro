@@ -1,14 +1,14 @@
 ---
 /**
- * Aurora — a subtle, ever-drifting mesh of muted red + green.
+ * Aurora — a living mesh of reds (red · rose · deep-rose · pink).
  *
- * Three heavily-blurred blobs are retargeted to new random positions/scales on
- * an interval (the "engine"); long CSS transitions tween the motion on the GPU,
- * so it reads as continuous organic drift that never repeats. Frozen when the
- * visitor prefers reduced motion. Purely decorative (aria-hidden).
+ * Four heavily-blurred blobs are retargeted to new random positions/scales on a
+ * short interval (the "engine"); each blob tweens at its own speed via GPU
+ * transitions, so the field drifts continuously, organically, and never
+ * repeats. Frozen when the visitor prefers reduced motion. Decorative only.
  *
- * Place inside a `position: relative; overflow: hidden` container; site content
- * should sit in a layer above it.
+ * Place inside a `position: relative; overflow: hidden` container; content sits
+ * in a layer above it.
  */
 ---
 
@@ -16,6 +16,7 @@
   <span class="aurora__blob a"></span>
   <span class="aurora__blob b"></span>
   <span class="aurora__blob c"></span>
+  <span class="aurora__blob d"></span>
 </div>
 
 <style>
@@ -28,29 +29,19 @@
   }
   .aurora__blob {
     position: absolute;
-    width: 62%;
+    width: 60%;
     aspect-ratio: 1;
     border-radius: 50%;
-    filter: blur(72px);
+    filter: blur(66px);
     transform: translate(-50%, -50%) translate(var(--tx, 0%), var(--ty, 0%)) scale(var(--s, 1));
-    transition: transform 9s cubic-bezier(0.37, 0, 0.63, 1);
+    transition: transform var(--dur, 6s) cubic-bezier(0.45, 0, 0.55, 1);
     will-change: transform;
   }
-  .aurora__blob.a {
-    left: 18%;
-    top: 22%;
-    background: radial-gradient(circle, rgba(197, 84, 72, 0.55), transparent 68%);
-  }
-  .aurora__blob.b {
-    left: 68%;
-    top: 52%;
-    background: radial-gradient(circle, rgba(84, 162, 118, 0.5), transparent 68%);
-  }
-  .aurora__blob.c {
-    left: 38%;
-    top: 82%;
-    background: radial-gradient(circle, rgba(150, 74, 92, 0.45), transparent 70%);
-  }
+  /* Red family — blends smoothly with no muddy midpoint. */
+  .aurora__blob.a { left: 20%; top: 24%; --dur: 5s;   background: radial-gradient(circle, rgba(214, 74, 63, 0.58), transparent 68%); }
+  .aurora__blob.b { left: 70%; top: 40%; --dur: 6.5s; background: radial-gradient(circle, rgba(240, 142, 134, 0.52), transparent 68%); }
+  .aurora__blob.c { left: 40%; top: 78%; --dur: 4.5s; background: radial-gradient(circle, rgba(168, 58, 74, 0.5), transparent 70%); }
+  .aurora__blob.d { left: 82%; top: 80%; --dur: 7s;   background: radial-gradient(circle, rgba(233, 108, 122, 0.46), transparent 70%); }
   @media (prefers-reduced-motion: reduce) {
     .aurora__blob { transition: none; }
   }
@@ -64,12 +55,12 @@
     const rand = (min, max) => (Math.random() * (max - min) + min).toFixed(2);
     function tick() {
       document.querySelectorAll('.aurora__blob').forEach((b) => {
-        b.style.setProperty('--tx', rand(-30, 30) + '%');
-        b.style.setProperty('--ty', rand(-30, 30) + '%');
-        b.style.setProperty('--s', rand(0.8, 1.45));
+        b.style.setProperty('--tx', rand(-48, 48) + '%');
+        b.style.setProperty('--ty', rand(-48, 48) + '%');
+        b.style.setProperty('--s', rand(0.7, 1.65));
       });
     }
     tick();
-    if (!reduce) setInterval(tick, 6000);
+    if (!reduce) setInterval(tick, 3800);
   })();
 </script>
