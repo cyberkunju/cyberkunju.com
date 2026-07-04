@@ -52,7 +52,6 @@ body {
 }
 
 :where(a):not(.button):hover,
-.nav a[aria-current="page"],
 .button.button--ghost:hover,
 .grad-text {
   background:
@@ -151,16 +150,21 @@ main {
 
 /* --- Site chrome --- */
 
+/* No top bar — just the wordmark in the top-left corner. */
 .site-header {
-  position: sticky;
-  top: 0;
+  position: relative;
   z-index: 10;
-  backdrop-filter: saturate(1.2) blur(8px);
-  background: color-mix(in srgb, var(--bg) 82%, transparent);
-  border-block-end: var(--border-width) solid var(--border);
+  width: 100%;
+  max-width: var(--container);
+  margin-inline: auto;
+  padding: var(--space-lg) var(--space-lg) 0;
 }
 
-.site-header__inner,
+.brand {
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-tight);
+}
+
 .site-footer__inner {
   display: flex;
   align-items: center;
@@ -169,18 +173,7 @@ main {
   min-height: 3.5rem;
 }
 
-.brand {
-  font-weight: var(--weight-bold);
-  letter-spacing: var(--tracking-tight);
-}
-
-.nav {
-  display: flex;
-  align-items: center;
-  gap: var(--space-md);
-}
-
-/* Active nav + .grad-text accents are styled by the shared gradient rule above. */
+/* .grad-text accents are styled by the shared gradient rule above. */
 
 .site-footer {
   position: relative;
