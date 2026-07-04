@@ -84,15 +84,6 @@ h3 {
   background: color-mix(in srgb, var(--bg) 82%, transparent);
   border-block-end: var(--border-width) solid var(--border);
 }
-/* Signature: a thin red → neon-green gradient hairline under the header. */
-.site-header::after {
-  content: "";
-  position: absolute;
-  inset-inline: 0;
-  bottom: -1px;
-  height: 1px;
-  background: var(--accent-grad);
-}
 
 .site-header__inner,
 .site-footer__inner {

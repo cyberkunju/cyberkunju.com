@@ -22,18 +22,14 @@
 
 .prose a {
   color: var(--text);
-  text-decoration: none;
-  background: var(--accent-grad) no-repeat left 100% / 100% 2px;
-  padding-bottom: 1px;
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-underline-offset: 0.15em;
+  text-decoration-thickness: 1px;
   transition: color var(--dur) var(--ease);
 }
 .prose a:hover {
-  color: transparent;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-size: 100% 100%;
-  background-position: center;
+  color: var(--accent);
 }
 
 .prose ul,

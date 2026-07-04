@@ -1,5 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
+import Aurora from '../components/Aurora.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { site } from '../config/site';
 
@@ -14,13 +15,16 @@ const projects = (await getCollection('projects', ({ data }) => !data.draft))
 ---
 
 <BaseLayout>
-  <section class="hero stack" style="--flow: var(--space-lg);">
-    <p class="eyebrow">{site.jobTitle}</p>
-    <h1>{site.name}</h1>
-    <p class="lead muted">{site.description}</p>
-    <div class="cluster">
-      <a class="button" href="/projects">View work</a>
-      <a class="button button--ghost" href={`mailto:${site.email}`} data-no-prerender>Get in touch</a>
+  <section class="hero">
+    <Aurora />
+    <div class="hero__content stack" style="--flow: var(--space-lg);">
+      <p class="eyebrow">{site.jobTitle}</p>
+      <h1>{site.name}</h1>
+      <p class="lead muted">{site.description}</p>
+      <div class="cluster">
+        <a class="button" href="/projects">View work</a>
+        <a class="button button--ghost" href={`mailto:${site.email}`} data-no-prerender>Get in touch</a>
+      </div>
     </div>
   </section>
 
@@ -52,7 +56,15 @@ const projects = (await getCollection('projects', ({ data }) => !data.draft))
 
   <style>
     .hero {
-      padding-block: var(--space-3xl) var(--space-xl);
+      position: relative;
+      overflow: hidden;
+      border-radius: var(--radius-lg);
+      padding: var(--space-3xl) var(--space-xl);
+      margin-block-start: var(--space-lg);
+    }
+    .hero__content {
+      position: relative;
+      z-index: 1;
       max-width: var(--container-narrow);
     }
     .lead {

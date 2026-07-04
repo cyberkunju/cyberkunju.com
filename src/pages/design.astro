@@ -1,4 +1,5 @@
 ---
+import Aurora from '../components/Aurora.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 
 // Locked theme: pure black & white with a slight red accent (see tokens.css).
@@ -20,6 +21,15 @@ const typeScale = [
       <h1>Design system</h1>
       <p class="muted">Every element with your current tokens. Click a palette to preview it live, toggle light/dark in the header, and tell me what to change.</p>
     </header>
+
+    <section class="guide__section">
+      <span class="guide__label">Signature · Aurora engine <em>(living red × green)</em></span>
+      <div class="demo aurora-demo">
+        <Aurora />
+        <span class="aurora-demo__cap">subtle · drifting · random</span>
+      </div>
+      <p class="cap">A slow, non-repeating mesh of muted red + green. It retargets to random positions on an interval; freezes for reduced-motion.</p>
+    </section>
 
     <!-- LOCKED PALETTE -->
     <section class="guide__section">
@@ -166,6 +176,8 @@ const typeScale = [
     }
     .guide__label em { color: var(--accent); font-style: normal; text-transform: none; letter-spacing: 0; }
     .demo { padding: var(--space-lg); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); }
+    .aurora-demo { position: relative; overflow: hidden; min-height: 240px; display: grid; place-items: center; }
+    .aurora-demo__cap { position: relative; z-index: 1; font-family: var(--font-mono); font-size: var(--step--1); letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted); }
     .cap, .small { color: var(--text-muted); font-size: var(--step--1); margin-block-start: var(--space-sm); }
 
 
