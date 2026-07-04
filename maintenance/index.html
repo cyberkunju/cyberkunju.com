@@ -4,230 +4,175 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex, nofollow" />
-    <meta name="theme-color" content="#0a0b0d" />
+    <meta name="theme-color" content="#08090c" />
     <title>cyberkunju</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <style>
       :root {
-        --bg: #0a0b0d;
-        --metal-1: #2a2e37;
-        --metal-2: #1c1f26;
-        --metal-3: #14161b;
-        --text: #d7dbe3;
-        --muted: #8a8f99;
-        --faint: #565b65;
-        --engrave-hi: rgba(255, 255, 255, 0.09);
-        --engrave-lo: rgba(0, 0, 0, 0.6);
-        --amber: #e6a94e;
-        --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --bg: #08090c;
+        --panel: #0f1115;
+        --text: #f2f3f7;
+        --muted: #8b93a3;
+        --faint: #5a6170;
+        --line: #1c2029;
+        --accent: #6d8bff;
+        --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
       }
       * { box-sizing: border-box; margin: 0; }
       html, body { height: 100%; }
       body {
-        font-family: var(--sans);
+        font-family: var(--font);
+        background: var(--bg);
+        /* soft, static glow — no motion */
+        background-image: radial-gradient(60% 50% at 50% 38%, rgba(109,139,255,0.10), transparent 70%);
         color: var(--text);
         -webkit-font-smoothing: antialiased;
-        min-height: 100dvh;
         display: grid;
         place-items: center;
-        padding: clamp(16px, 3vw, 40px);
-        background:
-          radial-gradient(90% 70% at 50% 28%, #16181d 0%, #0a0b0d 70%);
-      }
-      body::after {
-        content: ""; position: fixed; inset: 0; z-index: 50; pointer-events: none;
-        opacity: 0.04;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+        text-align: center;
+        padding: 2rem;
       }
 
-      /* ---- machined metal plate ---- */
-      .plate {
-        position: relative;
-        width: min(94vw, 40rem);
-        border-radius: 28px;
-        padding: clamp(1.7rem, 4.5vw, 3rem);
-        background-image:
-          repeating-linear-gradient(96deg, rgba(255,255,255,0.014) 0 1px, transparent 1px 3px),
-          linear-gradient(150deg, var(--metal-1) 0%, var(--metal-2) 46%, var(--metal-3) 100%);
-        box-shadow:
-          0 44px 90px -24px rgba(0,0,0,0.85),
-          0 12px 34px rgba(0,0,0,0.5),
-          inset 0 2px 0 rgba(255,255,255,0.16),
-          inset 0 1px 2px rgba(255,255,255,0.08),
-          inset 0 -3px 8px rgba(0,0,0,0.6);
-      }
-      /* reflective machined rim */
-      .plate::before {
-        content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px;
-        background: linear-gradient(150deg, rgba(255,255,255,0.4), rgba(255,255,255,0.04) 34%, rgba(0,0,0,0.5) 100%);
-        -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-        -webkit-mask-composite: xor; mask-composite: exclude;
-        pointer-events: none;
+      main {
+        width: min(92vw, 34rem);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.4rem;
       }
 
-      /* corner screws */
-      .screw {
-        position: absolute; width: 15px; height: 15px; border-radius: 50%;
-        background: radial-gradient(circle at 36% 30%, #40454f, #1a1c22 68%);
-        box-shadow: inset 0 1px 1px rgba(255,255,255,0.28), inset 0 -1px 2px rgba(0,0,0,0.75), 0 1px 1px rgba(0,0,0,0.5);
-      }
-      .screw::after {
-        content: ""; position: absolute; inset: 0; margin: auto;
-        width: 8px; height: 1.5px; background: rgba(0,0,0,0.55);
-        border-radius: 1px; transform: rotate(42deg);
-        box-shadow: 0 1px 0 rgba(255,255,255,0.08);
-      }
-      .screw.tl { top: 14px; left: 14px; } .screw.tr { top: 14px; right: 14px; }
-      .screw.bl { bottom: 14px; left: 14px; } .screw.br { bottom: 14px; right: 14px; }
-
-      .engrave {
-        color: #b9bec8;
-        text-shadow: 0 1px 0 var(--engrave-hi), 0 -1px 1px var(--engrave-lo);
-      }
-
-      .head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
       .brand {
-        font-family: inherit; font-size: 1.02rem; font-weight: 700; letter-spacing: 0.02em;
-        color: #b9bec8; text-shadow: 0 1px 0 var(--engrave-hi), 0 -1px 1px var(--engrave-lo);
-        background: none; border: 0; padding: 0.15rem 0.1rem;
-        cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent;
-      }
-      .code { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--faint); }
-
-      /* recessed glass display */
-      .display {
-        margin: clamp(1.3rem, 3vw, 2rem) 0;
-        border-radius: 16px;
-        padding: clamp(1.3rem, 3.5vw, 2.2rem);
-        background: linear-gradient(180deg, #0c0e12 0%, #070809 100%);
-        box-shadow:
-          inset 0 4px 12px rgba(0,0,0,0.9),
-          inset 0 -1px 0 rgba(255,255,255,0.05),
-          inset 0 0 0 1px rgba(0,0,0,0.6),
-          0 1px 0 rgba(255,255,255,0.06);
-      }
-      .display .tag { font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.28em; text-transform: uppercase; color: rgba(230,169,78,0.7); }
-      .display .readout {
-        margin-top: 0.6rem;
-        font-size: clamp(1.9rem, 6.5vw, 3.1rem);
-        font-weight: 640; letter-spacing: -0.03em; line-height: 1.02;
-        color: var(--amber);
-        text-shadow: 0 0 14px rgba(230,169,78,0.35), 0 1px 0 rgba(0,0,0,0.5);
-      }
-      .display .readout .dot { color: #fff; opacity: 0.85; }
-      .display .desc { margin-top: 0.8rem; color: var(--muted); font-size: 0.98rem; line-height: 1.55; max-width: 40ch; }
-
-      /* engraved spec row */
-      .spec { display: flex; flex-wrap: wrap; gap: 1.2rem 2.5rem; }
-      .field { display: flex; flex-direction: column; gap: 0.45rem; }
-      .field .k { font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--faint); }
-      .field .val { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.96rem; }
-      .field .val .txt { color: #c4c9d2; text-shadow: 0 1px 0 var(--engrave-hi); }
-      .field a.txt { text-decoration: none; transition: color 160ms; }
-      .field a.txt:hover { color: var(--amber); }
-      /* physical status LED */
-      .led {
-        width: 10px; height: 10px; border-radius: 50%;
-        background: radial-gradient(circle at 34% 30%, #ffe3a6, var(--amber) 55%, #7a4f18 100%);
-        box-shadow: 0 0 9px rgba(230,169,78,0.7), inset 0 -1px 1px rgba(0,0,0,0.45), inset 0 1px 1px rgba(255,255,255,0.4);
+        font-size: 1.7rem;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        color: var(--text);
+        background: none;
+        border: 0;
+        padding: 0.3rem 0.5rem;
+        cursor: pointer;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+        font-family: inherit;
       }
 
-      @media (max-width: 560px) { .spec { gap: 1.1rem 1.8rem; } }
+      .label {
+        font-size: 0.78rem;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--faint);
+      }
+
+      h1 {
+        font-size: clamp(1.7rem, 1.35rem + 1.8vw, 2.6rem);
+        font-weight: 700;
+        line-height: 1.12;
+        letter-spacing: -0.03em;
+        text-wrap: balance;
+      }
+
+      .lead {
+        color: var(--muted);
+        font-size: 1.02rem;
+        line-height: 1.6;
+        max-width: 32ch;
+      }
+
+      .meta {
+        margin-top: 0.5rem;
+        font-size: 0.95rem;
+        color: var(--muted);
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .meta .name { color: var(--text); font-weight: 600; }
+      .meta .sep { color: var(--line); }
+      .meta a {
+        color: var(--muted);
+        text-decoration: none;
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 1px;
+        transition: color 160ms, border-color 160ms;
+      }
+      .meta a:hover { color: var(--accent); border-color: var(--accent); }
     </style>
   </head>
   <body>
-    <div class="plate">
-      <span class="screw tl" aria-hidden="true"></span>
-      <span class="screw tr" aria-hidden="true"></span>
-      <span class="screw bl" aria-hidden="true"></span>
-      <span class="screw br" aria-hidden="true"></span>
-
-      <div class="head">
-        <button class="brand" id="brand" aria-label="cyberkunju" title="cyberkunju">cyberkunju</button>
-        <span class="code">v2 · mmxxvi</span>
+    <main>
+      <button class="brand" id="brand" aria-label="cyberkunju" title="cyberkunju">cyberkunju</button>
+      <span class="label">Under maintenance</span>
+      <h1>A new site is on the way.</h1>
+      <p class="lead">This site is being rebuilt with care. Please check back soon.</p>
+      <div class="meta">
+        <span class="name">Navaneeth&nbsp;K</span>
+        <span class="sep" aria-hidden="true">·</span>
+        <a href="mailto:hi@cyberkunju.com">hi@cyberkunju.com</a>
       </div>
-
-      <section class="display">
-        <span class="tag">System status</span>
-        <div class="readout">Under maintenance<span class="dot">.</span></div>
-        <p class="desc">A new cyberkunju is being built — considered, not rushed. Back before long.</p>
-      </section>
-
-      <div class="spec">
-        <div class="field">
-          <span class="k">Status</span>
-          <span class="val"><span class="led" aria-hidden="true"></span><span class="txt">In&nbsp;progress</span></span>
-        </div>
-        <div class="field">
-          <span class="k">By</span>
-          <span class="val"><span class="txt">Navaneeth&nbsp;K</span></span>
-        </div>
-        <div class="field">
-          <span class="k">Contact</span>
-          <span class="val"><a class="txt" href="mailto:hi@cyberkunju.com">hi@cyberkunju.com</a></span>
-        </div>
-      </div>
-    </div>
+    </main>
 
     <style>
       .gate {
-        position: fixed; inset: 0; z-index: 40;
+        position: fixed; inset: 0; z-index: 10;
         display: grid; place-items: center;
-        background: color-mix(in oklab, #050506 76%, transparent);
-        backdrop-filter: blur(9px);
+        background: color-mix(in oklab, #05060a 72%, transparent);
+        backdrop-filter: blur(10px) saturate(120%);
         opacity: 0; visibility: hidden;
-        transition: opacity 200ms ease, visibility 200ms;
+        transition: opacity 220ms cubic-bezier(0.2,0,0,1), visibility 220ms;
       }
       .gate[data-open="true"] { opacity: 1; visibility: visible; }
       .gate__card {
-        position: relative;
-        width: min(92vw, 23rem);
-        border-radius: 22px;
-        padding: 1.8rem 1.6rem;
-        background-image:
-          repeating-linear-gradient(96deg, rgba(255,255,255,0.014) 0 1px, transparent 1px 3px),
-          linear-gradient(150deg, var(--metal-1), var(--metal-2) 46%, var(--metal-3));
-        box-shadow:
-          0 30px 70px -20px rgba(0,0,0,0.85),
-          inset 0 2px 0 rgba(255,255,255,0.15),
-          inset 0 -3px 8px rgba(0,0,0,0.6);
+        width: min(92vw, 24rem);
+        background: color-mix(in oklab, var(--panel) 92%, transparent);
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        padding: 1.9rem 1.6rem;
+        text-align: center;
+        box-shadow: 0 30px 80px rgba(0,0,0,0.5);
         transform: translateY(10px) scale(0.98);
         transition: transform 260ms cubic-bezier(0.2,0,0,1);
       }
       .gate[data-open="true"] .gate__card { transform: none; }
-      .gate__card::before {
-        content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px;
-        background: linear-gradient(150deg, rgba(255,255,255,0.4), rgba(255,255,255,0.04) 34%, rgba(0,0,0,0.5));
-        -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-        -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none;
-      }
-      .gate__title { font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.24em; text-transform: uppercase; color: rgba(230,169,78,0.75); }
-      .gate__hint { color: var(--muted); font-size: 0.9rem; margin-top: 0.5rem; }
-      .pin { display: flex; gap: 0.5rem; margin: 1.4rem 0 0.3rem; }
+      .gate__title { font-size: 1.05rem; font-weight: 650; letter-spacing: -0.01em; }
+      .gate__hint { color: var(--muted); font-size: 0.85rem; margin-top: 0.4rem; }
+      .pin { display: flex; gap: 0.5rem; justify-content: center; margin: 1.4rem 0 0.4rem; }
       .pin input {
-        width: 100%; height: 3.1rem; min-width: 0;
-        text-align: center; font-family: var(--mono); font-size: 1.35rem;
-        color: var(--amber); text-shadow: 0 0 10px rgba(230,169,78,0.45);
-        background: linear-gradient(180deg, #0c0e12, #08090b);
-        border: 0; border-radius: 11px; outline: none;
-        box-shadow: inset 0 3px 8px rgba(0,0,0,0.9), inset 0 -1px 0 rgba(255,255,255,0.05), inset 0 0 0 1px rgba(0,0,0,0.6);
-        transition: box-shadow 140ms;
+        width: 2.75rem; height: 3.25rem;
+        text-align: center;
+        font-family: var(--mono);
+        font-size: 1.35rem;
+        color: var(--text);
+        background: #0a0c10;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        outline: none;
+        transition: border-color 140ms, box-shadow 140ms;
         -webkit-text-security: disc; text-security: disc;
       }
       .pin input:focus {
-        box-shadow: inset 0 3px 8px rgba(0,0,0,0.9), inset 0 0 0 1px rgba(230,169,78,0.55), 0 0 10px rgba(230,169,78,0.25);
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 22%, transparent);
       }
-      .gate__error { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: #e8746a; min-height: 1rem; margin-top: 0.8rem; }
+      .gate__error { color: #ff6b7f; font-size: 0.82rem; min-height: 1.1rem; margin-top: 0.5rem; }
       .gate.shake .gate__card { animation: shake 0.4s cubic-bezier(0.36,0.07,0.19,0.97); }
-      @keyframes shake { 10%,90%{transform:translateX(-2px);} 20%,80%{transform:translateX(3px);} 30%,50%,70%{transform:translateX(-6px);} 40%,60%{transform:translateX(6px);} }
-      @media (prefers-reduced-motion: reduce) { .gate, .gate__card { transition: none; } .gate.shake .gate__card { animation: none; } }
+      @keyframes shake {
+        10%,90% { transform: translateX(-2px); }
+        20%,80% { transform: translateX(4px); }
+        30%,50%,70% { transform: translateX(-8px); }
+        40%,60% { transform: translateX(8px); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .gate, .gate__card { transition: none; }
+        .gate.shake .gate__card { animation: none; }
+      }
     </style>
 
     <div class="gate" id="gate" role="dialog" aria-modal="true" aria-label="Access" aria-hidden="true">
       <div class="gate__card">
-        <div class="gate__title">Access</div>
-        <div class="gate__hint">Enter PIN. This device stays unlocked.</div>
+        <div class="gate__title">Enter access PIN</div>
+        <div class="gate__hint">This device will stay unlocked.</div>
         <div class="pin" id="pin">
           <input inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Digit 1" />
           <input inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Digit 2" />
