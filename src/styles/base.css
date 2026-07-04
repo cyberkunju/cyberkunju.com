@@ -14,23 +14,35 @@ body {
   background: var(--selection);
 }
 
-/* The accent identity: a red → rose gradient that slowly flows, clipped to
-   text. Shared by link hover, active nav, and .grad-text (ghost button below
-   carries its own copy to win the .button cascade). */
+/* The accent identity: a red → rose gradient whose angle slowly rotates, so
+   the colour lives and turns through the letters rather than sliding past.
+   Clipped to text; shared by link hover, active nav, and .grad-text (the
+   ghost button below carries its own copy to win the .button cascade). */
+@property --accent-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 120deg;
+}
 :where(a):not(.button):hover,
 .nav a[aria-current="page"],
 .grad-text {
-  background: var(--accent-grad);
-  background-size: 220% auto;
+  background: linear-gradient(
+    var(--accent-angle),
+    var(--acc-1),
+    var(--acc-2),
+    var(--acc-3),
+    var(--acc-2),
+    var(--acc-1)
+  );
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   color: transparent;
-  animation: accent-flow 6s linear infinite;
+  animation: accent-flow 7s linear infinite;
 }
 @keyframes accent-flow {
   to {
-    background-position: 220% center;
+    --accent-angle: 480deg;
   }
 }
 
@@ -204,13 +216,19 @@ main {
 .button--ghost:hover {
   opacity: 1;
   border-color: var(--accent);
-  background: var(--accent-grad);
-  background-size: 220% auto;
+  background: linear-gradient(
+    var(--accent-angle),
+    var(--acc-1),
+    var(--acc-2),
+    var(--acc-3),
+    var(--acc-2),
+    var(--acc-1)
+  );
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   color: transparent;
-  animation: accent-flow 6s linear infinite;
+  animation: accent-flow 7s linear infinite;
 }
 
 .muted {
