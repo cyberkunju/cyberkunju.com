@@ -113,9 +113,9 @@
     const start = () => {
       // Irregular quadrilateral tessellation: a jittered grid of points forms a
       // quad mesh (4 meet at each vertex). It spans the whole document and is
-      // translated by -scrollY so it scrolls with the page. A few tiles start
-      // lit; clicking a tile toggles it red (persistent). The top-left wordmark
-      // is centred on a chosen top-left tile.
+      // translated by -scrollY so it scrolls with the page. Tiles within one
+      // row of the top/bottom edge light red (the band); the top-left cell is
+      // carved to a clean full-row rectangle that houses the wordmark.
       const aurora = document.querySelector('.aurora');
       const scroll = document.querySelector('.aurora-scroll');
       const svg = scroll && scroll.querySelector('.aurora__tess');
@@ -158,34 +158,31 @@
             }
           }
 
-          // Carve a clean, wordmark-sized rectangle into the top-left cell so
-          // the "cyberkunju" logo sits inside a single rectangular polygon: snap
-          // that cell's four grid corners to a padded box around the wordmark's
-          // natural position. x1/y1 are clamped so the cell can't cross its
-          // outer neighbours and invert them. The cell keeps the same faint
-          // stroke and red band fill as every other tile — no special outline.
-          let cLi = -1;
-          let cLj = -1;
+          // Carve a clean rectangle for the wordmark in the top-left cell. It
+          // spans a FULL grid row (top/bottom snapped to the row's grid lines)
+          // and is only as wide as the wordmark plus padding. Because it keeps
+          // the row's height, the cells above/below/beside it stay their normal
+          // size — no wedges, no oversized tile, so nothing needs subdividing.
+          // The band fill lights it red like the rest of the row, so the logo
+          // sits in one clean red rectangle. x0/x1 are clamped so the cell can't
+          // cross its side neighbours and invert them.
           if (brand) {
             const r = brand.getBoundingClientRect();
             const padX = 16;
-            const padY = 11;
             const bcx = r.left + r.width / 2 + window.scrollX;
             const bcy = r.top + r.height / 2 + window.scrollY;
             const li = Math.max(0, Math.min(cols - 1, Math.floor((bcx - originX) / cell)));
             const lj = Math.max(0, Math.min(rows - 1, Math.floor((bcy - originY) / cellY)));
-            const x0 = r.left + window.scrollX - padX;
-            const y0 = r.top + window.scrollY - padY;
+            const yTop = (lj - 1) * cellY; // this row's top grid line
+            const yBot = lj * cellY; // this row's bottom grid line
+            let x0 = r.left + window.scrollX - padX;
             let x1 = r.right + window.scrollX + padX;
-            let y1 = r.bottom + window.scrollY + padY;
+            if (P[li - 1]) x0 = Math.max(x0, P[li - 1][lj][0] + 8);
             if (P[li + 2]) x1 = Math.min(x1, P[li + 2][lj][0] - 8);
-            if (P[li][lj + 2]) y1 = Math.min(y1, P[li][lj + 2][1] - 8);
-            P[li][lj] = [x0, y0];
-            P[li + 1][lj] = [x1, y0];
-            P[li + 1][lj + 1] = [x1, y1];
-            P[li][lj + 1] = [x0, y1];
-            cLi = li;
-            cLj = lj;
+            P[li][lj] = [x0, yTop];
+            P[li + 1][lj] = [x1, yTop];
+            P[li + 1][lj + 1] = [x1, yBot];
+            P[li][lj + 1] = [x0, yBot];
           }
 
           quads = [];
@@ -226,61 +223,6 @@
             }
           }
 
-          // Carving the rectangle distorts the ring of cells around it into
-          // awkward wedges (and one oversized cell below). Re-tile that ring:
-          // split each neighbour into a small grid and light the parts inside
-          // the top band red, so the mesh stays even and the red bar flows
-          // around the rectangle. Only interior points are jittered — every
-          // border edge is a plain lerp between the original grid corners, so
-          // sub-tiles stay flush with the rectangle, with each other, and with
-          // the outer mesh (no gaps/tears). The row above is skipped (it is the
-          // off-screen top overflow).
-          if (cLi >= 0) {
-            const nx = 3;
-            const ny = 3;
-            const sj = jit / 3;
-            const lerp = (p, q, t) => [p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t];
-            const retile = (ci, cj) => {
-              if (!quads[ci] || !quads[ci][cj]) return;
-              const [tl, tr, br, bl] = quads[ci][cj].p;
-              cellsG.removeChild(quads[ci][cj].el);
-              const g = [];
-              for (let v = 0; v <= ny; v++) {
-                g[v] = [];
-                for (let u = 0; u <= nx; u++) {
-                  const pt = lerp(lerp(tl, tr, u / nx), lerp(bl, br, u / nx), v / ny);
-                  if (u > 0 && u < nx && v > 0 && v < ny) {
-                    pt[0] += rand(-sj, sj);
-                    pt[1] += rand(-sj, sj);
-                  }
-                  g[v][u] = pt;
-                }
-              }
-              const sub = document.createDocumentFragment();
-              for (let v = 0; v < ny; v++) {
-                for (let u = 0; u < nx; u++) {
-                  const a = g[v][u];
-                  const b = g[v][u + 1];
-                  const c = g[v + 1][u + 1];
-                  const d = g[v + 1][u];
-                  const poly = document.createElementNS(NS, 'polygon');
-                  poly.setAttribute(
-                    'points',
-                    `${a[0].toFixed(1)},${a[1].toFixed(1)} ${b[0].toFixed(1)},${b[1].toFixed(1)} ${c[0].toFixed(1)},${c[1].toFixed(1)} ${d[0].toFixed(1)},${d[1].toFixed(1)}`,
-                  );
-                  const scy = (a[1] + b[1] + c[1] + d[1]) / 4;
-                  if (Math.min(scy, docH - scy) < DEPTH) poly.style.fillOpacity = String(MAXO);
-                  sub.appendChild(poly);
-                }
-              }
-              cellsG.appendChild(sub);
-            };
-            for (let di = -1; di <= 1; di++) {
-              for (let dj = 0; dj <= 1; dj++) {
-                if (di !== 0 || dj !== 0) retile(cLi + di, cLj + dj);
-              }
-            }
-          }
         };
 
         const applyScroll = () => {
