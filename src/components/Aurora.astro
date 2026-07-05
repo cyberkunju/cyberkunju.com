@@ -127,7 +127,6 @@
         const cell = parseInt(getComputedStyle(aurora).getPropertyValue('--cell'), 10) || 92;
         const jit = cell * 0.36;
         const originX = -cell;
-        const originY = -cell;
         const NS = 'http://www.w3.org/2000/svg';
         let quads = [];
         let cols = 0;
@@ -155,14 +154,22 @@
           svg.style.height = docH + 'px';
           svg.setAttribute('viewBox', `0 0 ${vw} ${docH}`);
           cols = Math.ceil((vw + 2 * cell) / cell);
-          rows = Math.ceil((docH + 2 * cell) / cell);
+          // Make the vertical tiling commensurate with the page height so BOTH
+          // y=0 and y=docH land on grid lines: rowsN rows of cellY (≈ cell)
+          // that divide docH exactly, plus one overflow row past each edge.
+          // y=0 being grid-aligned is why the top band is clean; aligning the
+          // bottom the same way fixes the ragged tongues there.
+          const rowsN = Math.max(1, Math.round(docH / cell));
+          const cellY = docH / rowsN;
+          const originY = -cellY;
+          rows = rowsN + 2;
           const P = [];
           for (let i = 0; i <= cols; i++) {
             P[i] = [];
             for (let j = 0; j <= rows; j++) {
               P[i][j] = [
                 originX + i * cell + rand(-jit, jit),
-                originY + j * cell + rand(-jit, jit),
+                originY + j * cellY + rand(-jit, jit),
               ];
             }
           }
@@ -196,7 +203,7 @@
           // that are almost fully clipped (tiny slivers). Opacity is inline per
           // tile; the mesh is rebuilt from scratch each time, so it survives the
           // per-load reshuffle.
-          const DEPTH = cell; // band depth ≈ one tile-row (keeps the edge even)
+          const DEPTH = cellY; // one full tile-row; both edges are grid-aligned
           const MAXO = 0.5; // band opacity
           const SIDE = 0.15; // side tile lights only if < 15% of it is visible
           for (let i = 0; i < cols; i++) {
