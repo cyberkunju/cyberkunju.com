@@ -150,14 +150,12 @@ main {
 
 /* --- Site chrome --- */
 
-/* No top bar — just the wordmark in the top-left corner. */
+/* No top bar — just the wordmark pinned to the top-left corner (not aligned to
+   the centred content container, so it hugs the real left edge). */
 .site-header {
   position: relative;
   z-index: 10;
-  width: 100%;
-  max-width: var(--container);
-  margin-inline: auto;
-  padding: var(--space-lg) var(--space-lg) 0;
+  padding: var(--space-md) var(--space-lg);
 }
 
 .brand {

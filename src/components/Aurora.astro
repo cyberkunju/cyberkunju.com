@@ -6,10 +6,10 @@
  *      shapes on every load. A red frame is recomputed each build so it
  *      persists across the reshuffle: a single flat red band hugs the top and
  *      bottom edges only (one grid-row deep; both edges are grid-aligned so the
- *      band is even). The band-row tiles the top-left wordmark spans are merged
- *      into one shape at the band's opacity (no divider through the text) under
- *      the white "cyberkunju" wordmark; the rest of the mesh stays organic.
- *      Behind content (pointer-events:none).
+ *      band is even). A fixed red shape is pinned around the corner "cyberkunju"
+ *      wordmark (geometry from the wordmark box, not the mesh) so it stays put
+ *      every load while the rest of the mesh reshuffles around it; the white
+ *      wordmark sits centred in it. Behind content (pointer-events:none).
  *   1. filmic grain
  *
  * Fixed, site-wide, behind content.
@@ -115,8 +115,8 @@
       // Irregular quadrilateral tessellation: a jittered grid of points forms a
       // quad mesh (4 meet at each vertex). It spans the whole document and is
       // translated by -scrollY so it scrolls with the page. Tiles within one
-      // row of the top/bottom edge light red (the band); the tiles under the
-      // wordmark are merged into one shape (no divider) as its backing.
+      // row of the top/bottom edge light red (the band); a fixed red shape is
+      // pinned around the top-left wordmark and stays put across reshuffles.
       const aurora = document.querySelector('.aurora');
       const scroll = document.querySelector('.aurora-scroll');
       const svg = scroll && scroll.querySelector('.aurora__tess');
@@ -197,33 +197,39 @@
             }
           }
 
-          // Logo backing: merge the band-row tiles the wordmark spans into one
-          // shape and lift it to full opacity, so there's no divider through
-          // the text and the black wordmark reads on a bright red field. The
-          // merged outline uses the jittered grid points, so it keeps organic
-          // edges (not a rectangle). Recomputed every build → adapts to any
-          // viewport size and to the reshuffle.
+          // Permanent logo shape: a fixed quad pinned around the top-left
+          // wordmark, drawn as an opaque --bg mask + the band's red on top, so
+          // it reads as the band colour, clean, with no divider. Its geometry
+          // comes only from the (corner-pinned) wordmark box — never from the
+          // jittered mesh — so this one shape stays put on every load while the
+          // rest of the mesh reshuffles around it. The wordmark sits centred in
+          // it; small fixed offsets keep it from being a dead-straight box.
           if (brand) {
             const r = brand.getBoundingClientRect();
-            const wx0 = r.left + window.scrollX;
-            const wx1 = r.right + window.scrollX;
-            const wcy = r.top + r.height / 2 + window.scrollY;
-            const lj = Math.max(0, Math.min(rows - 1, Math.floor((wcy - originY) / cellY)));
-            const cA = Math.max(0, Math.floor((wx0 - originX) / cell));
-            const cB = Math.min(cols, Math.max(cA + 1, Math.ceil((wx1 - originX) / cell)));
-            for (let c = cA; c < cB; c++) {
-              if (quads[c] && quads[c][lj]) cellsG.removeChild(quads[c][lj].el);
-            }
-            const outline = [];
-            for (let c = cA; c <= cB; c++) outline.push(P[c][lj]); // top edge L→R
-            for (let c = cB; c >= cA; c--) outline.push(P[c][lj + 1]); // bottom edge R→L
-            const merged = document.createElementNS(NS, 'polygon');
-            merged.setAttribute(
-              'points',
-              outline.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' '),
-            );
-            merged.style.fillOpacity = String(MAXO);
-            cellsG.appendChild(merged);
+            const px = 16;
+            const py = 10;
+            const L = r.left + window.scrollX;
+            const R = r.right + window.scrollX;
+            const T = r.top + window.scrollY;
+            const B = r.bottom + window.scrollY;
+            const pts = [
+              [L - px - 4, T - py + 3],
+              [R + px + 6, T - py - 2],
+              [R + px + 2, B + py + 4],
+              [L - px - 7, B + py - 3],
+            ]
+              .map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`)
+              .join(' ');
+            const mask = document.createElementNS(NS, 'polygon');
+            mask.setAttribute('points', pts);
+            mask.style.fill = 'var(--bg)';
+            mask.style.fillOpacity = '1';
+            mask.style.stroke = 'none';
+            const fill = document.createElementNS(NS, 'polygon');
+            fill.setAttribute('points', pts);
+            fill.style.fillOpacity = String(MAXO);
+            cellsG.appendChild(mask);
+            cellsG.appendChild(fill);
           }
         };
 
