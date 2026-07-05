@@ -2,14 +2,10 @@
 /**
  * Aurora — living ambient background:
  *   0. a grayscale gradient wash + an irregular quadrilateral tessellation
- *      (jittered SVG quad mesh) that scrolls with the page. It reshuffles its
- *      shapes on every load. A red frame is recomputed each build so it
- *      persists across the reshuffle: a red glow fades in from the top and
- *      bottom edges (per-tile opacity by distance to the edge — a solid core
- *      then a smooth falloff), while the left and right edges only light tiles
- *      that show a tiny sliver — no side frame. The top-left
- *      wordmark is centred on a chosen top-left tile. Behind content
- *      (pointer-events:none).
+ *      (jittered SVG quad mesh) that scrolls with the page and reshuffles its
+ *      shapes on every load. Tiles are transparent — only the faint strokes
+ *      show. The top-left wordmark is centred on a chosen top-left tile. Behind
+ *      content (pointer-events:none).
  *   2. a real cursive "cyberkunju" signature (Sacramento script, traced as a
  *      single stroke via stroke-dashoffset) — slowly penned, faint, then it
  *      fades and re-signs at a new random spot. Not a wipe reveal. The stroke
@@ -167,9 +163,8 @@ const sigPath =
     stroke-width: 1;
     transition: fill-opacity 340ms ease;
   }
-  /* The red top/bottom glow + side slivers are painted per tile via inline
-     fill-opacity in JS (distance-to-edge falloff), so no class rule is needed
-     here — the base rule above supplies the fill and the fade transition. */
+  /* Tiles stay transparent (fill-opacity 0 from the base rule above); only the
+     faint strokes render the tessellation. */
 </style>
 
 <script is:inline>
@@ -254,47 +249,6 @@ const sigPath =
             }
           }
           cellsG.appendChild(frag);
-
-          // Paint the red accent as a soft glow faded in from the top and
-          // bottom edges, faceted through the tessellation. Each tile's opacity
-          // is driven by its centroid's distance to the nearer horizontal edge:
-          // a solid core near the edge, then a smooth linear falloff to zero. A
-          // gradient of opacities — not a boundary of whole tiles — is what
-          // keeps the band even and intentional instead of a jagged ring. The
-          // left/right edges only pick up tiles that are almost fully clipped
-          // (tiny slivers). Opacity is inline per tile; the mesh is rebuilt from
-          // scratch each time, so nothing goes stale. Recomputed every build, so
-          // it survives the per-load reshuffle.
-          const SOLID = cell * 0.7; // fully-lit core depth from the edge
-          const BAND = cell * 3; // total depth of the top/bottom fade
-          const MAXO = 0.55; // opacity at the edge
-          const SIDE = 0.15; // side tile lights only if < 15% of it is visible
-          for (let i = 0; i < cols; i++) {
-            for (let j = 0; j < rows; j++) {
-              const q = quads[i][j];
-              const [pa, pb, pc, pd] = q.p;
-              const minX = Math.min(pa[0], pb[0], pc[0], pd[0]);
-              const maxX = Math.max(pa[0], pb[0], pc[0], pd[0]);
-              const w = maxX - minX;
-              const cy = (pa[1] + pb[1] + pc[1] + pd[1]) / 4;
-
-              // Distance to the nearer of the top / bottom edges → opacity.
-              const dV = Math.min(cy, docH - cy);
-              let o = 0;
-              if (dV < SOLID) o = MAXO;
-              else if (dV < BAND) o = MAXO * (1 - (dV - SOLID) / (BAND - SOLID));
-
-              // Sides: only near-fully-clipped tiles (tiny slivers).
-              if (
-                (minX < 0 && maxX > 0 && maxX / w < SIDE) ||
-                (minX < vw && maxX > vw && (vw - minX) / w < SIDE)
-              ) {
-                o = Math.max(o, MAXO);
-              }
-
-              if (o > 0.01) q.el.style.fillOpacity = o.toFixed(3);
-            }
-          }
 
           // Centre the wordmark on a comfortable top-left tile.
           const anchor = [110, 56];
