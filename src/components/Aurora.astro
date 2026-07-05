@@ -183,18 +183,20 @@
             const cB = Math.min(cols, Math.max(cA + 1, Math.ceil((shapeR - originX) / cell)));
             const span = cB - cA;
             const fj = (n) => {
+              // deterministic signed jitter in [-1, 1) → shape is identical every load
               const s = Math.sin(n * 12.9898 + 4.13) * 43758.5453;
-              return ((s - Math.floor(s)) - 0.5) * jit * 0.8;
+              return (s - Math.floor(s)) * 2 - 1;
             };
+            const A = jit;
             for (let c = cA; c <= cB; c++) {
-              // Left/right edges sit exactly on the wordmark-centred box (so the
-              // shape is centred on the text); interior columns are spread
-              // across it and the top/bottom edges get a little jitter to stay
-              // organic. Fixed values → the shape is identical every load.
-              const edge = c === cA || c === cB;
-              const x = shapeL + ((shapeR - shapeL) * (c - cA)) / span + (edge ? 0 : fj(c));
-              P[c][lj] = [x, yTop + fj(c + 50)];
-              P[c][lj + 1] = [x, yBot + fj(c + 150)];
+              // The side columns bow outward (more at the bottom), so the left
+              // and right edges slant instead of being vertical, and the edges
+              // wander — an angular, organic silhouette rather than a rectangle.
+              // The outward bias keeps the wordmark comfortably inside.
+              const baseX = shapeL + ((shapeR - shapeL) * (c - cA)) / span;
+              const out = (c === cA ? -1 : 0) + (c === cB ? 1 : 0);
+              P[c][lj] = [baseX + out * 7 + fj(c) * A * 0.35, yTop + fj(c + 50) * A * 0.5];
+              P[c][lj + 1] = [baseX + out * 16 + fj(c + 30) * A * 0.5, yBot + fj(c + 150) * A * 0.7];
             }
             logo = { cA, cB, lj, cy: (yTop + yBot) / 2, bcy };
           }
