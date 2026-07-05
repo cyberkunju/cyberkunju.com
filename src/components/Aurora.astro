@@ -226,53 +226,60 @@
             }
           }
 
-          // The carved rectangle is shorter than a grid row, so the cell right
-          // below it stretches into one oversized tile. Split it into a small
-          // grid of tiles and light the ones that fall inside the top band red,
-          // so the red bar continues under the rectangle and the wordmark reads
-          // as embedded in the middle of it. Only interior points are jittered;
-          // the border edges stay put so the sub-tiles align with the rectangle
-          // above and the neighbours around it (no gaps/tears).
-          if (cLi >= 0 && quads[cLi] && quads[cLi][cLj + 1]) {
-            const below = quads[cLi][cLj + 1];
-            const [tl, tr, br, bl] = below.p;
-            cellsG.removeChild(below.el);
+          // Carving the rectangle distorts the ring of cells around it into
+          // awkward wedges (and one oversized cell below). Re-tile that ring:
+          // split each neighbour into a small grid and light the parts inside
+          // the top band red, so the mesh stays even and the red bar flows
+          // around the rectangle. Only interior points are jittered — every
+          // border edge is a plain lerp between the original grid corners, so
+          // sub-tiles stay flush with the rectangle, with each other, and with
+          // the outer mesh (no gaps/tears). The row above is skipped (it is the
+          // off-screen top overflow).
+          if (cLi >= 0) {
             const nx = 3;
             const ny = 3;
             const sj = jit / 3;
             const lerp = (p, q, t) => [p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t];
-            const g = [];
-            for (let v = 0; v <= ny; v++) {
-              g[v] = [];
-              for (let u = 0; u <= nx; u++) {
-                const pt = lerp(lerp(tl, tr, u / nx), lerp(bl, br, u / nx), v / ny);
-                if (u > 0 && u < nx && v > 0 && v < ny) {
-                  pt[0] += rand(-sj, sj);
-                  pt[1] += rand(-sj, sj);
+            const retile = (ci, cj) => {
+              if (!quads[ci] || !quads[ci][cj]) return;
+              const [tl, tr, br, bl] = quads[ci][cj].p;
+              cellsG.removeChild(quads[ci][cj].el);
+              const g = [];
+              for (let v = 0; v <= ny; v++) {
+                g[v] = [];
+                for (let u = 0; u <= nx; u++) {
+                  const pt = lerp(lerp(tl, tr, u / nx), lerp(bl, br, u / nx), v / ny);
+                  if (u > 0 && u < nx && v > 0 && v < ny) {
+                    pt[0] += rand(-sj, sj);
+                    pt[1] += rand(-sj, sj);
+                  }
+                  g[v][u] = pt;
                 }
-                g[v][u] = pt;
+              }
+              const sub = document.createDocumentFragment();
+              for (let v = 0; v < ny; v++) {
+                for (let u = 0; u < nx; u++) {
+                  const a = g[v][u];
+                  const b = g[v][u + 1];
+                  const c = g[v + 1][u + 1];
+                  const d = g[v + 1][u];
+                  const poly = document.createElementNS(NS, 'polygon');
+                  poly.setAttribute(
+                    'points',
+                    `${a[0].toFixed(1)},${a[1].toFixed(1)} ${b[0].toFixed(1)},${b[1].toFixed(1)} ${c[0].toFixed(1)},${c[1].toFixed(1)} ${d[0].toFixed(1)},${d[1].toFixed(1)}`,
+                  );
+                  const scy = (a[1] + b[1] + c[1] + d[1]) / 4;
+                  if (Math.min(scy, docH - scy) < DEPTH) poly.style.fillOpacity = String(MAXO);
+                  sub.appendChild(poly);
+                }
+              }
+              cellsG.appendChild(sub);
+            };
+            for (let di = -1; di <= 1; di++) {
+              for (let dj = 0; dj <= 1; dj++) {
+                if (di !== 0 || dj !== 0) retile(cLi + di, cLj + dj);
               }
             }
-            const sub = document.createDocumentFragment();
-            for (let v = 0; v < ny; v++) {
-              for (let u = 0; u < nx; u++) {
-                const a = g[v][u];
-                const b = g[v][u + 1];
-                const c = g[v + 1][u + 1];
-                const d = g[v + 1][u];
-                const poly = document.createElementNS(NS, 'polygon');
-                poly.setAttribute(
-                  'points',
-                  `${a[0].toFixed(1)},${a[1].toFixed(1)} ${b[0].toFixed(1)},${b[1].toFixed(1)} ${c[0].toFixed(1)},${c[1].toFixed(1)} ${d[0].toFixed(1)},${d[1].toFixed(1)}`,
-                );
-                // Light sub-tiles within the top band so the red bar runs on
-                // under the rectangle.
-                const scy = (a[1] + b[1] + c[1] + d[1]) / 4;
-                if (Math.min(scy, docH - scy) < DEPTH) poly.style.fillOpacity = String(MAXO);
-                sub.appendChild(poly);
-              }
-            }
-            cellsG.appendChild(sub);
           }
         };
 
