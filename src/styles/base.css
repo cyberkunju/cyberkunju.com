@@ -161,8 +161,12 @@ main {
 }
 
 .brand {
-  font-weight: var(--weight-bold);
+  font-size: var(--step-1);
+  font-weight: 800;
   letter-spacing: var(--tracking-tight);
+  /* Match the page background (black in dark) so the wordmark reads as a
+     punched-out mark on the bright red logo tile. */
+  color: var(--bg);
 }
 
 .site-footer__inner {

@@ -197,11 +197,10 @@
             }
           }
 
-          // Leave the mesh fully organic and drop a small clean rectangle over
-          // the wordmark. Two stacked polygons: an opaque --bg mask that hides
-          // the tiles/strokes underneath, then the same red gradient at the
-          // band's opacity on top — so the rectangle reads as the band colour
-          // exactly, just clean. The organic tiles remain all around it.
+          // Leave the mesh fully organic and drop one clean, bright, opaque red
+          // rectangle over the wordmark (full-opacity gradient covers the tiles
+          // and strokes underneath). The bold black wordmark sits on it and
+          // stands out; the organic tiles stay all around.
           if (brand) {
             const r = brand.getBoundingClientRect();
             const padX = 12;
@@ -210,17 +209,10 @@
             const y0 = (r.top + window.scrollY - padY).toFixed(1);
             const x1 = (r.right + window.scrollX + padX).toFixed(1);
             const y1 = (r.bottom + window.scrollY + padY).toFixed(1);
-            const pts = `${x0},${y0} ${x1},${y0} ${x1},${y1} ${x0},${y1}`;
-            const mask = document.createElementNS(NS, 'polygon');
-            mask.setAttribute('points', pts);
-            mask.style.fill = 'var(--bg)';
-            mask.style.fillOpacity = '1';
-            mask.style.stroke = 'none';
-            const fillRect = document.createElementNS(NS, 'polygon');
-            fillRect.setAttribute('points', pts);
-            fillRect.style.fillOpacity = String(MAXO);
-            cellsG.appendChild(mask);
-            cellsG.appendChild(fillRect);
+            const rectEl = document.createElementNS(NS, 'polygon');
+            rectEl.setAttribute('points', `${x0},${y0} ${x1},${y0} ${x1},${y1} ${x0},${y1}`);
+            rectEl.style.fillOpacity = '1';
+            cellsG.appendChild(rectEl);
           }
         };
 
