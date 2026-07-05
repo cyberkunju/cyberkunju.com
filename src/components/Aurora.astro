@@ -2,9 +2,10 @@
 /**
  * Aurora — living ambient background:
  *   0. a grayscale gradient wash + an irregular quadrilateral tessellation
- *      (jittered SVG quad mesh); the tile under the cursor pops in the red
- *      accent via point-in-polygon hit-testing — behind content, so it never
- *      blocks interaction
+ *      (jittered SVG quad mesh) that scrolls with the page. A few tiles start
+ *      lit in the red accent; clicking a tile toggles it red (persistent). The
+ *      top-left wordmark is centred on a chosen top-left tile. Behind content
+ *      (pointer-events:none), click handled globally via point-in-polygon.
  *   2. a real cursive "cyberkunju" signature (Sacramento script, traced as a
  *      single stroke via stroke-dashoffset) — slowly penned, faint, then it
  *      fades and re-signs at a new random spot. Not a wipe reveal. The stroke
@@ -22,16 +23,6 @@ const sigPath =
 
 <div class="aurora" aria-hidden="true">
   <span class="aurora__wash"></span>
-  <svg class="aurora__tess" preserveAspectRatio="none">
-    <defs>
-      <linearGradient id="tessPop" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#c1121f" />
-        <stop offset="0.5" stop-color="#ff4d3a" />
-        <stop offset="1" stop-color="#ff6a4a" />
-      </linearGradient>
-    </defs>
-    <g class="aurora__cells"></g>
-  </svg>
 
   <span class="aurora__sig">
     <svg viewBox="6.9 37.1 495.7 191.4" fill="none" preserveAspectRatio="xMidYMid meet">
@@ -54,6 +45,21 @@ const sigPath =
   </span>
 
   <span class="aurora__grain"></span>
+</div>
+
+<!-- Scrolls with the page: a fixed viewport clip holding a full-document-tall
+     tessellation that JS translates by -scrollY. -->
+<div class="aurora-scroll" aria-hidden="true">
+  <svg class="aurora__tess" preserveAspectRatio="none">
+    <defs>
+      <linearGradient id="tessPop" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#c1121f" />
+        <stop offset="0.5" stop-color="#ff4d3a" />
+        <stop offset="1" stop-color="#ff6a4a" />
+      </linearGradient>
+    </defs>
+    <g class="aurora__cells"></g>
+  </svg>
 </div>
 
 <style>
@@ -81,13 +87,19 @@ const sigPath =
   /* Irregular quadrilateral tessellation — a jittered quad mesh (4 tiles around
      each vertex) built as SVG polygons by JS. Faint strokes draw the tiling;
      the tile under the cursor pops in the red accent. Softly vignetted. */
+  .aurora-scroll {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+  }
   .aurora__tess {
     position: absolute;
-    inset: 0;
+    top: 0;
+    left: 0;
     width: 100%;
-    height: 100%;
-    -webkit-mask-image: radial-gradient(130% 130% at 50% 40%, #000 55%, transparent 100%);
-    mask-image: radial-gradient(130% 130% at 50% 40%, #000 55%, transparent 100%);
+    will-change: transform;
   }
   /* Polygon styles live in the is:global block below — the tiles are created in
      JS and don't carry Astro's scoped-style attribute, so scoped rules miss
@@ -174,139 +186,202 @@ const sigPath =
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const rand = (min, max) => Math.random() * (max - min) + min;
 
-    // Irregular quadrilateral tessellation: a jittered grid of points forms a
-    // quad mesh (adjacent quads share vertices, so 4 meet at each vertex). The
-    // tile under the cursor lights up in red — found via point-in-polygon over
-    // just the 3x3 neighbourhood of the pointer's base cell (cheap, rAF-gated).
-    const aurora = document.querySelector('.aurora');
-    const svg = aurora && aurora.querySelector('.aurora__tess');
-    const cellsG = svg && svg.querySelector('.aurora__cells');
-    if (aurora && svg && cellsG) {
-      const cell = parseInt(getComputedStyle(aurora).getPropertyValue('--cell'), 10) || 92;
-      const jit = cell * 0.36;
-      const originX = -cell;
-      const originY = -cell;
-      let quads = [];
-      let cols = 0;
-      let rows = 0;
-      let current = null;
+    const start = () => {
+      // Irregular quadrilateral tessellation: a jittered grid of points forms a
+      // quad mesh (4 meet at each vertex). It spans the whole document and is
+      // translated by -scrollY so it scrolls with the page. A few tiles start
+      // lit; clicking a tile toggles it red (persistent). The top-left wordmark
+      // is centred on a chosen top-left tile.
+      const aurora = document.querySelector('.aurora');
+      const scroll = document.querySelector('.aurora-scroll');
+      const svg = scroll && scroll.querySelector('.aurora__tess');
+      const cellsG = svg && svg.querySelector('.aurora__cells');
+      const brand = document.querySelector('.brand');
 
-      const build = () => {
-        const vw = window.innerWidth;
-        const vh = window.innerHeight;
-        svg.setAttribute('viewBox', `0 0 ${vw} ${vh}`);
-        cols = Math.ceil((vw + 2 * cell) / cell);
-        rows = Math.ceil((vh + 2 * cell) / cell);
-        const P = [];
-        for (let i = 0; i <= cols; i++) {
-          P[i] = [];
-          for (let j = 0; j <= rows; j++) {
-            P[i][j] = [
-              originX + i * cell + rand(-jit, jit),
-              originY + j * cell + rand(-jit, jit),
-            ];
-          }
-        }
-        quads = [];
+      if (aurora && scroll && svg && cellsG) {
+        const cell = parseInt(getComputedStyle(aurora).getPropertyValue('--cell'), 10) || 92;
+        const jit = cell * 0.36;
+        const originX = -cell;
+        const originY = -cell;
         const NS = 'http://www.w3.org/2000/svg';
-        while (cellsG.firstChild) cellsG.removeChild(cellsG.firstChild);
-        const frag = document.createDocumentFragment();
-        for (let i = 0; i < cols; i++) {
-          quads[i] = [];
-          for (let j = 0; j < rows; j++) {
-            const a = P[i][j];
-            const b = P[i + 1][j];
-            const c = P[i + 1][j + 1];
-            const d = P[i][j + 1];
-            const poly = document.createElementNS(NS, 'polygon');
-            poly.setAttribute(
-              'points',
-              `${a[0].toFixed(1)},${a[1].toFixed(1)} ${b[0].toFixed(1)},${b[1].toFixed(1)} ${c[0].toFixed(1)},${c[1].toFixed(1)} ${d[0].toFixed(1)},${d[1].toFixed(1)}`,
-            );
-            quads[i][j] = { p: [a, b, c, d], el: poly };
-            frag.appendChild(poly);
+        let quads = [];
+        let cols = 0;
+        let rows = 0;
+        let target = null;
+
+        const centroid = (p) => [
+          (p[0][0] + p[1][0] + p[2][0] + p[3][0]) / 4,
+          (p[0][1] + p[1][1] + p[2][1] + p[3][1]) / 4,
+        ];
+
+        const inQuad = (px, py, poly) => {
+          let inside = false;
+          for (let i = 0, n = poly.length, j = n - 1; i < n; j = i++) {
+            const xi = poly[i][0];
+            const yi = poly[i][1];
+            const xj = poly[j][0];
+            const yj = poly[j][1];
+            if (yi > py !== yj > py && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi) {
+              inside = !inside;
+            }
           }
-        }
-        cellsG.appendChild(frag);
-        current = null;
-      };
+          return inside;
+        };
 
-      const inQuad = (px, py, poly) => {
-        let inside = false;
-        for (let i = 0, n = poly.length, j = n - 1; i < n; j = i++) {
-          const xi = poly[i][0];
-          const yi = poly[i][1];
-          const xj = poly[j][0];
-          const yj = poly[j][1];
-          if (yi > py !== yj > py && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi) {
-            inside = !inside;
+        const positionBrand = () => {
+          if (!brand || !target) return;
+          brand.style.transform = 'none';
+          const r = brand.getBoundingClientRect();
+          const bx = r.left + r.width / 2 + window.scrollX;
+          const by = r.top + r.height / 2 + window.scrollY;
+          brand.style.transform = `translate(${(target[0] - bx).toFixed(1)}px, ${(target[1] - by).toFixed(1)}px)`;
+        };
+
+        const build = () => {
+          const vw = window.innerWidth;
+          const docH = Math.max(document.documentElement.scrollHeight, window.innerHeight);
+          svg.style.width = '100%';
+          svg.style.height = docH + 'px';
+          svg.setAttribute('viewBox', `0 0 ${vw} ${docH}`);
+          cols = Math.ceil((vw + 2 * cell) / cell);
+          rows = Math.ceil((docH + 2 * cell) / cell);
+          const P = [];
+          for (let i = 0; i <= cols; i++) {
+            P[i] = [];
+            for (let j = 0; j <= rows; j++) {
+              P[i][j] = [
+                originX + i * cell + rand(-jit, jit),
+                originY + j * cell + rand(-jit, jit),
+              ];
+            }
           }
-        }
-        return inside;
-      };
-
-      let queued = false;
-      let lx = 0;
-      let ly = 0;
-      const place = () => {
-        queued = false;
-        const gi = Math.floor((lx - originX) / cell);
-        const gj = Math.floor((ly - originY) / cell);
-        let found = null;
-        for (let i = gi - 1; i <= gi + 1 && !found; i++) {
-          for (let j = gj - 1; j <= gj + 1 && !found; j++) {
-            if (i < 0 || j < 0 || i >= cols || j >= rows) continue;
-            if (inQuad(lx, ly, quads[i][j].p)) found = quads[i][j];
+          quads = [];
+          while (cellsG.firstChild) cellsG.removeChild(cellsG.firstChild);
+          const frag = document.createDocumentFragment();
+          for (let i = 0; i < cols; i++) {
+            quads[i] = [];
+            for (let j = 0; j < rows; j++) {
+              const a = P[i][j];
+              const b = P[i + 1][j];
+              const c = P[i + 1][j + 1];
+              const d = P[i][j + 1];
+              const poly = document.createElementNS(NS, 'polygon');
+              poly.setAttribute(
+                'points',
+                `${a[0].toFixed(1)},${a[1].toFixed(1)} ${b[0].toFixed(1)},${b[1].toFixed(1)} ${c[0].toFixed(1)},${c[1].toFixed(1)} ${d[0].toFixed(1)},${d[1].toFixed(1)}`,
+              );
+              quads[i][j] = { p: [a, b, c, d], el: poly };
+              frag.appendChild(poly);
+            }
           }
-        }
-        if (found === current) return;
-        if (current) current.el.classList.remove('on');
-        current = found;
-        if (current) current.el.classList.add('on');
-      };
+          cellsG.appendChild(frag);
 
-      window.addEventListener(
-        'pointermove',
-        (e) => {
-          lx = e.clientX;
-          ly = e.clientY;
-          if (!queued) {
-            queued = true;
-            requestAnimationFrame(place);
+          // Light a few random tiles from the start.
+          const lit = Math.min(6, cols * rows);
+          for (let k = 0; k < lit; k++) {
+            const i = Math.floor(rand(0, cols));
+            const j = Math.floor(rand(0, rows));
+            quads[i][j].el.classList.add('on');
           }
-        },
-        { passive: true },
-      );
-      const clear = () => {
-        if (current) {
-          current.el.classList.remove('on');
-          current = null;
+
+          // Centre the wordmark on a comfortable top-left tile.
+          const anchor = [110, 56];
+          let best = null;
+          let bestD = Infinity;
+          for (let i = 0; i < Math.min(cols, 6); i++) {
+            for (let j = 0; j < Math.min(rows, 4); j++) {
+              const c2 = centroid(quads[i][j].p);
+              if (c2[0] < 70 || c2[1] < 28) continue;
+              const dd = (c2[0] - anchor[0]) ** 2 + (c2[1] - anchor[1]) ** 2;
+              if (dd < bestD) {
+                bestD = dd;
+                best = c2;
+              }
+            }
+          }
+          target = best || anchor;
+          positionBrand();
+        };
+
+        const applyScroll = () => {
+          svg.style.transform = `translate3d(0, ${-window.scrollY}px, 0)`;
+        };
+
+        // Click toggles the tile under the pointer (ignoring real interactives).
+        window.addEventListener('click', (e) => {
+          if (e.target.closest && e.target.closest('a, button, input, textarea, select, [role="button"]')) {
+            return;
+          }
+          const px = e.pageX;
+          const py = e.pageY;
+          const gi = Math.floor((px - originX) / cell);
+          const gj = Math.floor((py - originY) / cell);
+          for (let i = gi - 1; i <= gi + 1; i++) {
+            for (let j = gj - 1; j <= gj + 1; j++) {
+              if (i < 0 || j < 0 || i >= cols || j >= rows) continue;
+              if (inQuad(px, py, quads[i][j].p)) {
+                quads[i][j].el.classList.toggle('on');
+                return;
+              }
+            }
+          }
+        });
+
+        let sraf = false;
+        window.addEventListener(
+          'scroll',
+          () => {
+            if (sraf) return;
+            sraf = true;
+            requestAnimationFrame(() => {
+              sraf = false;
+              applyScroll();
+            });
+          },
+          { passive: true },
+        );
+
+        build();
+        applyScroll();
+        if (document.fonts && document.fonts.ready) {
+          document.fonts.ready.then(positionBrand).catch(() => {});
         }
-      };
-      document.addEventListener('pointerleave', clear);
-      window.addEventListener('blur', clear);
 
-      build();
-      let rt;
-      window.addEventListener('resize', () => {
-        clearTimeout(rt);
-        rt = setTimeout(build, 200);
-      });
-    }
+        // Rebuild when the document size changes (resize, late content/fonts).
+        let rt;
+        const rebuild = () => {
+          clearTimeout(rt);
+          rt = setTimeout(() => {
+            build();
+            applyScroll();
+          }, 250);
+        };
+        window.addEventListener('resize', rebuild);
+        if ('ResizeObserver' in window) {
+          new ResizeObserver(rebuild).observe(document.body);
+        }
+      }
 
-    const sig = document.querySelector('.aurora__sig');
-    if (sig && !reduce) {
-      const loop = () => {
-        sig.style.left = rand(24, 76).toFixed(1) + '%';
-        sig.style.top = rand(22, 78).toFixed(1) + '%';
-        sig.style.setProperty('--rot', rand(-9, 4).toFixed(1) + 'deg');
-        sig.style.setProperty('--sc', rand(0.85, 1.15).toFixed(2));
-        sig.classList.remove('draw');
-        void sig.offsetWidth;
-        sig.classList.add('draw');
-        setTimeout(loop, 17000 + rand(4000, 9000));
-      };
-      setTimeout(loop, rand(800, 2000));
+      const sig = document.querySelector('.aurora__sig');
+      if (sig && !reduce) {
+        const loop = () => {
+          sig.style.left = rand(24, 76).toFixed(1) + '%';
+          sig.style.top = rand(22, 78).toFixed(1) + '%';
+          sig.style.setProperty('--rot', rand(-9, 4).toFixed(1) + 'deg');
+          sig.style.setProperty('--sc', rand(0.85, 1.15).toFixed(2));
+          sig.classList.remove('draw');
+          void sig.offsetWidth;
+          sig.classList.add('draw');
+          setTimeout(loop, 17000 + rand(4000, 9000));
+        };
+        setTimeout(loop, rand(800, 2000));
+      }
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', start);
+    } else {
+      start();
     }
   })();
 </script>
