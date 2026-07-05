@@ -1,9 +1,10 @@
 ---
 /**
  * Aurora — living ambient background:
- *   0. a refined grayscale gradient wash + a faint quadrilateral grid; the tile
- *      under the cursor pops in the red accent (JS snaps a highlighter to the
- *      hovered cell — behind content, so it never blocks interaction)
+ *   0. a grayscale gradient wash + an irregular quadrilateral tessellation
+ *      (jittered SVG quad mesh); the tile under the cursor pops in the red
+ *      accent via point-in-polygon hit-testing — behind content, so it never
+ *      blocks interaction
  *   2. a real cursive "cyberkunju" signature (Sacramento script, traced as a
  *      single stroke via stroke-dashoffset) — slowly penned, faint, then it
  *      fades and re-signs at a new random spot. Not a wipe reveal. The stroke
@@ -21,8 +22,16 @@ const sigPath =
 
 <div class="aurora" aria-hidden="true">
   <span class="aurora__wash"></span>
-  <span class="aurora__grid"></span>
-  <span class="aurora__tile"></span>
+  <svg class="aurora__tess" preserveAspectRatio="none">
+    <defs>
+      <linearGradient id="tessPop" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#c1121f" />
+        <stop offset="0.5" stop-color="#ff4d3a" />
+        <stop offset="1" stop-color="#ff6a4a" />
+      </linearGradient>
+    </defs>
+    <g class="aurora__cells"></g>
+  </svg>
 
   <span class="aurora__sig">
     <svg viewBox="6.9 37.1 495.7 191.4" fill="none" preserveAspectRatio="xMidYMid meet">
@@ -54,7 +63,7 @@ const sigPath =
     overflow: hidden;
     pointer-events: none;
     z-index: 0;
-    --cell: 76px;
+    --cell: 92px;
   }
 
   /* Static ambient wash — a refined, directional grayscale gradient in the
@@ -69,48 +78,36 @@ const sigPath =
       radial-gradient(70% 70% at 100% 45%, rgba(var(--aurora-tint), 0.035), transparent 60%);
   }
 
-  /* Quadrilateral tiling — faint grid lines drawn cheaply via gradients (no
-     DOM tiles), softly vignetted so they fade at the edges. */
-  .aurora__grid {
+  /* Irregular quadrilateral tessellation — a jittered quad mesh (4 tiles around
+     each vertex) built as SVG polygons by JS. Faint strokes draw the tiling;
+     the tile under the cursor pops in the red accent. Softly vignetted. */
+  .aurora__tess {
     position: absolute;
     inset: 0;
-    background-image:
-      linear-gradient(to right, rgba(var(--aurora-tint), 0.06) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(var(--aurora-tint), 0.06) 1px, transparent 1px);
-    background-size: var(--cell) var(--cell);
-    -webkit-mask-image: radial-gradient(125% 125% at 50% 40%, #000 55%, transparent 100%);
-    mask-image: radial-gradient(125% 125% at 50% 40%, #000 55%, transparent 100%);
+    width: 100%;
+    height: 100%;
+    -webkit-mask-image: radial-gradient(130% 130% at 50% 40%, #000 52%, transparent 100%);
+    mask-image: radial-gradient(130% 130% at 50% 40%, #000 52%, transparent 100%);
   }
-
-  /* A single highlighter square that snaps to the hovered cell and pops in the
-     red accent. Position is driven by JS (--tx/--ty). */
-  .aurora__tile {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: var(--cell);
-    height: var(--cell);
-    transform: translate(var(--tx, -200px), var(--ty, -200px));
-    background: var(--accent-grad);
-    border-radius: 3px;
-    opacity: 0;
-    box-shadow: 0 0 30px 6px rgba(255, 74, 58, 0.25);
-    transition: opacity 260ms ease;
+  .aurora__tess polygon {
+    fill: url(#tessPop);
+    fill-opacity: 0;
+    stroke: rgba(var(--aurora-tint), 0.08);
+    stroke-width: 1;
+    transition: fill-opacity 340ms ease;
   }
-  .aurora__tile.on {
-    opacity: 0.5;
+  .aurora__tess polygon.on {
+    animation: tess-pop 320ms ease-out forwards;
   }
-  .aurora__tile.pop {
-    animation: tile-pop 260ms ease-out;
-  }
-  @keyframes tile-pop {
+  @keyframes tess-pop {
     0% {
-      transform: translate(var(--tx), var(--ty)) scale(0.7);
-      opacity: 0.85;
+      fill-opacity: 0;
+    }
+    45% {
+      fill-opacity: 0.62;
     }
     100% {
-      transform: translate(var(--tx), var(--ty)) scale(1);
-      opacity: 0.5;
+      fill-opacity: 0.46;
     }
   }
 
@@ -168,30 +165,97 @@ const sigPath =
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const rand = (min, max) => Math.random() * (max - min) + min;
 
-    // Tiling highlighter: snap the red tile to the grid cell under the cursor.
-    // rAF-throttled; only repaints when the cell actually changes.
+    // Irregular quadrilateral tessellation: a jittered grid of points forms a
+    // quad mesh (adjacent quads share vertices, so 4 meet at each vertex). The
+    // tile under the cursor lights up in red — found via point-in-polygon over
+    // just the 3x3 neighbourhood of the pointer's base cell (cheap, rAF-gated).
     const aurora = document.querySelector('.aurora');
-    const tile = document.querySelector('.aurora__tile');
-    if (aurora && tile) {
-      const cell = parseInt(getComputedStyle(aurora).getPropertyValue('--cell'), 10) || 76;
+    const svg = aurora && aurora.querySelector('.aurora__tess');
+    const cellsG = svg && svg.querySelector('.aurora__cells');
+    if (aurora && svg && cellsG) {
+      const cell = parseInt(getComputedStyle(aurora).getPropertyValue('--cell'), 10) || 92;
+      const jit = cell * 0.36;
+      const originX = -cell;
+      const originY = -cell;
+      let quads = [];
+      let cols = 0;
+      let rows = 0;
+      let current = null;
+
+      const build = () => {
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        svg.setAttribute('viewBox', `0 0 ${vw} ${vh}`);
+        cols = Math.ceil((vw + 2 * cell) / cell);
+        rows = Math.ceil((vh + 2 * cell) / cell);
+        const P = [];
+        for (let i = 0; i <= cols; i++) {
+          P[i] = [];
+          for (let j = 0; j <= rows; j++) {
+            P[i][j] = [
+              originX + i * cell + rand(-jit, jit),
+              originY + j * cell + rand(-jit, jit),
+            ];
+          }
+        }
+        quads = [];
+        let markup = '';
+        for (let i = 0; i < cols; i++) {
+          quads[i] = [];
+          for (let j = 0; j < rows; j++) {
+            const a = P[i][j];
+            const b = P[i + 1][j];
+            const c = P[i + 1][j + 1];
+            const d = P[i][j + 1];
+            quads[i][j] = { p: [a, b, c, d], el: null };
+            markup += `<polygon points="${a[0].toFixed(1)},${a[1].toFixed(1)} ${b[0].toFixed(1)},${b[1].toFixed(1)} ${c[0].toFixed(1)},${c[1].toFixed(1)} ${d[0].toFixed(1)},${d[1].toFixed(1)}"/>`;
+          }
+        }
+        cellsG.innerHTML = markup;
+        const els = cellsG.children;
+        let k = 0;
+        for (let i = 0; i < cols; i++) {
+          for (let j = 0; j < rows; j++) {
+            quads[i][j].el = els[k++];
+          }
+        }
+        current = null;
+      };
+
+      const inQuad = (px, py, poly) => {
+        let inside = false;
+        for (let i = 0, n = poly.length, j = n - 1; i < n; j = i++) {
+          const xi = poly[i][0];
+          const yi = poly[i][1];
+          const xj = poly[j][0];
+          const yj = poly[j][1];
+          if (yi > py !== yj > py && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi) {
+            inside = !inside;
+          }
+        }
+        return inside;
+      };
+
       let queued = false;
       let lx = 0;
       let ly = 0;
-      let key = '';
       const place = () => {
         queued = false;
-        const cx = Math.floor(lx / cell);
-        const cy = Math.floor(ly / cell);
-        const k = cx + ':' + cy;
-        if (k === key) return;
-        key = k;
-        tile.style.setProperty('--tx', cx * cell + 'px');
-        tile.style.setProperty('--ty', cy * cell + 'px');
-        tile.classList.add('on');
-        tile.classList.remove('pop');
-        void tile.offsetWidth;
-        tile.classList.add('pop');
+        const gi = Math.floor((lx - originX) / cell);
+        const gj = Math.floor((ly - originY) / cell);
+        let found = null;
+        for (let i = gi - 1; i <= gi + 1 && !found; i++) {
+          for (let j = gj - 1; j <= gj + 1 && !found; j++) {
+            if (i < 0 || j < 0 || i >= cols || j >= rows) continue;
+            if (inQuad(lx, ly, quads[i][j].p)) found = quads[i][j];
+          }
+        }
+        if (found === current) return;
+        if (current) current.el.classList.remove('on');
+        current = found;
+        if (current) current.el.classList.add('on');
       };
+
       window.addEventListener(
         'pointermove',
         (e) => {
@@ -204,8 +268,21 @@ const sigPath =
         },
         { passive: true },
       );
-      document.addEventListener('pointerleave', () => tile.classList.remove('on'));
-      window.addEventListener('blur', () => tile.classList.remove('on'));
+      const clear = () => {
+        if (current) {
+          current.el.classList.remove('on');
+          current = null;
+        }
+      };
+      document.addEventListener('pointerleave', clear);
+      window.addEventListener('blur', clear);
+
+      build();
+      let rt;
+      window.addEventListener('resize', () => {
+        clearTimeout(rt);
+        rt = setTimeout(build, 200);
+      });
     }
 
     const sig = document.querySelector('.aurora__sig');
