@@ -164,9 +164,6 @@ main {
   font-size: var(--step-2);
   font-weight: 800;
   letter-spacing: var(--tracking-tight);
-  /* Black in dark (matches the page bg); reads as a punched-out mark on the
-     bright red logo shape behind it. */
-  color: var(--bg);
 }
 
 .site-footer__inner {

@@ -7,9 +7,9 @@
  *      persists across the reshuffle: a single flat red band hugs the top and
  *      bottom edges only (one grid-row deep; both edges are grid-aligned so the
  *      band is even). The band-row tiles the top-left wordmark spans are merged
- *      into one full-opacity red shape (no divider through the text) so the
- *      black "cyberkunju" wordmark reads on it; the rest of the mesh stays
- *      organic. Behind content (pointer-events:none).
+ *      into one shape at the band's opacity (no divider through the text) under
+ *      the white "cyberkunju" wordmark; the rest of the mesh stays organic.
+ *      Behind content (pointer-events:none).
  *   1. filmic grain
  *
  * Fixed, site-wide, behind content.
@@ -116,7 +116,7 @@
       // quad mesh (4 meet at each vertex). It spans the whole document and is
       // translated by -scrollY so it scrolls with the page. Tiles within one
       // row of the top/bottom edge light red (the band); the tiles under the
-      // wordmark are merged into one bright red shape as its backing.
+      // wordmark are merged into one shape (no divider) as its backing.
       const aurora = document.querySelector('.aurora');
       const scroll = document.querySelector('.aurora-scroll');
       const svg = scroll && scroll.querySelector('.aurora__tess');
@@ -222,7 +222,7 @@
               'points',
               outline.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' '),
             );
-            merged.style.fillOpacity = '1';
+            merged.style.fillOpacity = String(MAXO);
             cellsG.appendChild(merged);
           }
         };
