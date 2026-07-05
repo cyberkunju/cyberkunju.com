@@ -99,9 +99,9 @@
     stroke-width: 1;
     transition: fill-opacity 340ms ease;
   }
-  /* The red top/bottom band and the carved logo cell's stroke are painted per
-     tile via inline styles in JS, so no class rule is needed here — the base
-     rule above supplies the fill and the fade transition. */
+  /* The red top/bottom band is painted per tile via inline fill-opacity in JS,
+     so no class rule is needed here — the base rule above supplies the fill and
+     the fade transition. */
 </style>
 
 <script is:inline>
@@ -159,11 +159,11 @@
           }
 
           // Carve a clean, wordmark-sized rectangle into the top-left cell so
-          // the "cyberkunju" logo sits perfectly inside a single polygon: snap
+          // the "cyberkunju" logo sits inside a single rectangular polygon: snap
           // that cell's four grid corners to a padded box around the wordmark's
           // natural position. x1/y1 are clamped so the cell can't cross its
-          // outer neighbours and invert them.
-          let logoCell = null;
+          // outer neighbours and invert them. The cell keeps the same faint
+          // stroke and red band fill as every other tile — no special outline.
           if (brand) {
             const r = brand.getBoundingClientRect();
             const padX = 16;
@@ -182,7 +182,6 @@
             P[li + 1][lj] = [x1, y0];
             P[li + 1][lj + 1] = [x1, y1];
             P[li][lj + 1] = [x0, y1];
-            logoCell = { i: li, j: lj };
           }
 
           quads = [];
@@ -223,13 +222,6 @@
             }
           }
 
-          // Emphasise the carved logo cell so it reads as a frame around the
-          // wordmark (which sits centred inside it, positioned by CSS).
-          if (logoCell) {
-            const el = quads[logoCell.i][logoCell.j].el;
-            el.style.stroke = 'rgba(var(--aurora-tint), 0.45)';
-            el.style.strokeWidth = '1.5';
-          }
         };
 
         const applyScroll = () => {
