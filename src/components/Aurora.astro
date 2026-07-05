@@ -189,14 +189,14 @@
 
           // One flat red band near the top and bottom edges — no gradient
           // falloff. A tile lights at a single opacity when its centroid is
-          // within DEPTH of the nearer horizontal edge. (The earlier fade
-          // produced visible extra layers and bright contour lines where the
-          // partly-lit tile rows exposed the orange end of their fill gradient;
-          // a single uniform band avoids that.) The left/right edges only pick
-          // up tiles that are almost fully clipped (tiny slivers). Opacity is
-          // inline per tile; the mesh is rebuilt from scratch each time, so it
-          // survives the per-load reshuffle.
-          const DEPTH = cell * 1.5; // depth of the solid red band from the edge
+          // within DEPTH of the nearer horizontal edge. DEPTH is kept to a
+          // single tile-row: at 1.5 cell it caught part of the *second* row,
+          // and those tall tiles filled deep into ragged tongues; one row keeps
+          // the band an even thickness. The left/right edges only pick up tiles
+          // that are almost fully clipped (tiny slivers). Opacity is inline per
+          // tile; the mesh is rebuilt from scratch each time, so it survives the
+          // per-load reshuffle.
+          const DEPTH = cell; // band depth ≈ one tile-row (keeps the edge even)
           const MAXO = 0.5; // band opacity
           const SIDE = 0.15; // side tile lights only if < 15% of it is visible
           for (let i = 0; i < cols; i++) {
