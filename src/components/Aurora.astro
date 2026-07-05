@@ -2,12 +2,14 @@
 /**
  * Aurora — living ambient background:
  *   0. a grayscale gradient wash + an irregular quadrilateral tessellation
- *      (jittered SVG quad mesh) that scrolls with the page and reshuffles its
- *      shapes on every load. A single subtle red fade rises from the top and
- *      bottom edges (per-tile opacity by distance to the edge, one falloff),
- *      with tiny slivers on the left/right — recomputed each build so it
- *      survives the reshuffle. The top-left wordmark is centred on a chosen
- *      top-left tile. Behind content (pointer-events:none).
+ *      (jittered SVG quad mesh) that scrolls with the page. It reshuffles its
+ *      shapes on every load. A red frame is recomputed each build so it
+ *      persists across the reshuffle: a single flat red band hugs the top and
+ *      bottom edges (tiles within a fixed depth of the edge, one opacity, no
+ *      fade), while the left and right edges only light tiles that show a tiny
+ *      sliver — no side frame. The top-left
+ *      wordmark is centred on a chosen top-left tile. Behind content
+ *      (pointer-events:none).
  *   2. a real cursive "cyberkunju" signature (Sacramento script, traced as a
  *      single stroke via stroke-dashoffset) — slowly penned, faint, then it
  *      fades and re-signs at a new random spot. Not a wipe reveal. The stroke
@@ -165,8 +167,9 @@ const sigPath =
     stroke-width: 1;
     transition: fill-opacity 340ms ease;
   }
-  /* Tiles stay transparent (fill-opacity 0 from the base rule above); only the
-     faint strokes render the tessellation. */
+  /* The red top/bottom glow + side slivers are painted per tile via inline
+     fill-opacity in JS (distance-to-edge falloff), so no class rule is needed
+     here — the base rule above supplies the fill and the fade transition. */
 </style>
 
 <script is:inline>
@@ -252,13 +255,17 @@ const sigPath =
           }
           cellsG.appendChild(frag);
 
-          // A single, subtle red fade in from the top and bottom edges: one
-          // linear falloff of per-tile opacity by the centroid's distance to
-          // the nearer horizontal edge — no solid core, no second tier. The
-          // left/right edges only pick up tiles that are almost fully clipped
-          // (tiny slivers). Recomputed each build, so it survives the reshuffle.
-          const BAND = cell * 1.5; // depth of the top/bottom fade
-          const MAXO = 0.4; // opacity right at the edge
+          // One flat red band near the top and bottom edges — no gradient
+          // falloff. A tile lights at a single opacity when its centroid is
+          // within DEPTH of the nearer horizontal edge. (The earlier fade
+          // produced visible extra layers and bright contour lines where the
+          // partly-lit tile rows exposed the orange end of their fill gradient;
+          // a single uniform band avoids that.) The left/right edges only pick
+          // up tiles that are almost fully clipped (tiny slivers). Opacity is
+          // inline per tile; the mesh is rebuilt from scratch each time, so it
+          // survives the per-load reshuffle.
+          const DEPTH = cell * 1.5; // depth of the solid red band from the edge
+          const MAXO = 0.5; // band opacity
           const SIDE = 0.15; // side tile lights only if < 15% of it is visible
           for (let i = 0; i < cols; i++) {
             for (let j = 0; j < rows; j++) {
@@ -269,18 +276,12 @@ const sigPath =
               const w = maxX - minX;
               const cy = (pa[1] + pb[1] + pc[1] + pd[1]) / 4;
 
-              const dV = Math.min(cy, docH - cy);
-              let o = dV < BAND ? MAXO * (1 - dV / BAND) : 0;
-              if (o > MAXO) o = MAXO; // clamp overflow tiles above the edge
+              const on =
+                Math.min(cy, docH - cy) < DEPTH || // top / bottom band
+                (minX < 0 && maxX > 0 && maxX / w < SIDE) || // left sliver
+                (minX < vw && maxX > vw && (vw - minX) / w < SIDE); // right sliver
 
-              if (
-                (minX < 0 && maxX > 0 && maxX / w < SIDE) ||
-                (minX < vw && maxX > vw && (vw - minX) / w < SIDE)
-              ) {
-                o = Math.max(o, MAXO);
-              }
-
-              if (o > 0.01) q.el.style.fillOpacity = o.toFixed(3);
+              if (on) q.el.style.fillOpacity = String(MAXO);
             }
           }
 
