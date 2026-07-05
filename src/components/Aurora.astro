@@ -168,20 +168,35 @@
           // these points), while the rest of the mesh keeps its random jitter.
           let logo = null;
           if (brand) {
+            brand.style.transform = 'none'; // measure the natural (untranslated) box
             const r = brand.getBoundingClientRect();
-            const wcy = r.top + r.height / 2 + window.scrollY;
-            const lj = Math.max(1, Math.min(rows - 1, Math.floor((wcy - originY) / cellY)));
-            const cA = Math.max(0, Math.min(cols - 1, Math.floor((r.left + window.scrollX - originX) / cell)));
-            const cB = Math.min(cols, Math.max(cA + 1, Math.ceil((r.right + window.scrollX - originX) / cell)));
+            const bcx = r.left + r.width / 2 + window.scrollX;
+            const bcy = r.top + r.height / 2 + window.scrollY;
+            const padX = 14;
+            const half = r.width / 2 + padX; // snug: only a little wider than the text
+            const shapeL = bcx - half;
+            const shapeR = bcx + half;
+            const lj = Math.max(1, Math.min(rows - 1, Math.floor((bcy - originY) / cellY)));
+            const yTop = (lj - 1) * cellY; // full band row → tiles cleanly above/below
+            const yBot = lj * cellY;
+            const cA = Math.max(0, Math.min(cols - 1, Math.floor((shapeL - originX) / cell)));
+            const cB = Math.min(cols, Math.max(cA + 1, Math.ceil((shapeR - originX) / cell)));
+            const span = cB - cA;
             const fj = (n) => {
               const s = Math.sin(n * 12.9898 + 4.13) * 43758.5453;
-              return ((s - Math.floor(s)) - 0.5) * jit * 1.5;
+              return ((s - Math.floor(s)) - 0.5) * jit * 0.8;
             };
             for (let c = cA; c <= cB; c++) {
-              P[c][lj] = [originX + c * cell + fj(c), (lj - 1) * cellY + fj(c + 50)];
-              P[c][lj + 1] = [originX + c * cell + fj(c + 100), lj * cellY + fj(c + 150)];
+              // Left/right edges sit exactly on the wordmark-centred box (so the
+              // shape is centred on the text); interior columns are spread
+              // across it and the top/bottom edges get a little jitter to stay
+              // organic. Fixed values → the shape is identical every load.
+              const edge = c === cA || c === cB;
+              const x = shapeL + ((shapeR - shapeL) * (c - cA)) / span + (edge ? 0 : fj(c));
+              P[c][lj] = [x, yTop + fj(c + 50)];
+              P[c][lj + 1] = [x, yBot + fj(c + 150)];
             }
-            logo = { cA, cB, lj };
+            logo = { cA, cB, lj, cy: (yTop + yBot) / 2, bcy };
           }
 
           quads = [];
@@ -242,6 +257,9 @@
             );
             merged.style.fillOpacity = String(MAXO);
             cellsG.appendChild(merged);
+            // The shape is already centred on the wordmark horizontally; nudge
+            // the wordmark down so it's centred vertically inside it too.
+            brand.style.transform = `translateY(${(logo.cy - logo.bcy).toFixed(1)}px)`;
           }
         };
 
