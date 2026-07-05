@@ -159,10 +159,12 @@ main {
 }
 
 .brand {
-  display: inline-block; /* so JS can translate it to the logo shape's centre */
+  display: inline-block;
   font-size: var(--step-2);
   font-weight: 800;
-  letter-spacing: var(--tracking-tight);
+  /* Uppercase wordmark with open tracking → a deliberate, premium logo. */
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
 }
 
 .site-footer__inner {
