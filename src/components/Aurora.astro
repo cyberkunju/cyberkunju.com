@@ -168,6 +168,7 @@
           // these points), while the rest of the mesh keeps its random jitter.
           let logo = null;
           if (brand) {
+            brand.style.transform = 'none'; // measure the natural (untranslated) box
             const r = brand.getBoundingClientRect();
             const bcx = r.left + r.width / 2 + window.scrollX;
             const bcy = r.top + r.height / 2 + window.scrollY;
@@ -197,7 +198,7 @@
               P[c][lj] = [baseX + sideX(c), yTop + fs(c + 50) * jit * 0.5];
               P[c][lj + 1] = [baseX + sideX(c + 9), yBot + fs(c + 150) * jit * 0.5];
             }
-            logo = { cA, cB, lj };
+            logo = { cA, cB, lj, cx: bcx, cy: bcy };
           }
 
           quads = [];
@@ -258,6 +259,16 @@
             );
             merged.style.fillOpacity = String(MAXO);
             cellsG.appendChild(merged);
+            // Centre the wordmark on the shape's centroid (both axes).
+            let sx = 0;
+            let sy = 0;
+            for (let k = 0; k < outline.length; k++) {
+              sx += outline[k][0];
+              sy += outline[k][1];
+            }
+            sx /= outline.length;
+            sy /= outline.length;
+            brand.style.transform = `translate(${(sx - logo.cx).toFixed(1)}px, ${(sy - logo.cy).toFixed(1)}px)`;
           }
         };
 
