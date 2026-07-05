@@ -159,12 +159,47 @@ main {
 }
 
 .brand {
-  display: inline-block;
-  font-size: var(--step-2);
+  display: grid;
+  justify-items: center;
+  align-items: center;
+  font-size: var(--step-1);
   font-weight: 800;
   /* Uppercase wordmark with open tracking → a deliberate, premium logo. */
   text-transform: uppercase;
   letter-spacing: 0.09em;
+}
+
+/* Both labels share one grid cell, so the box is always the width of the wider
+   one — the logo shape (which measures this box) stays put while they swap.
+   They cross-fade with a soft vertical slide + blur every 2s. */
+.brand__word {
+  grid-area: 1 / 1;
+  transition:
+    opacity 0.5s var(--ease),
+    transform 0.5s var(--ease),
+    filter 0.5s var(--ease);
+}
+.brand__word--b {
+  opacity: 0;
+  transform: translateY(0.4em);
+  filter: blur(4px);
+}
+.brand.is-alt .brand__word--a {
+  opacity: 0;
+  transform: translateY(-0.4em);
+  filter: blur(4px);
+}
+.brand.is-alt .brand__word--b {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .brand__word {
+    transition: opacity 0.2s var(--ease);
+    transform: none;
+    filter: none;
+  }
 }
 
 .site-footer__inner {
