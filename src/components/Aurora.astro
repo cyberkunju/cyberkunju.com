@@ -1,7 +1,9 @@
 ---
 /**
  * Aurora — living ambient background:
- *   1. drifting mesh of neutral (black/white) glows — pure grayscale, no colour
+ *   0. a refined grayscale gradient wash + a faint quadrilateral grid; the tile
+ *      under the cursor pops in the red accent (JS snaps a highlighter to the
+ *      hovered cell — behind content, so it never blocks interaction)
  *   2. a real cursive "cyberkunju" signature (Sacramento script, traced as a
  *      single stroke via stroke-dashoffset) — slowly penned, faint, then it
  *      fades and re-signs at a new random spot. Not a wipe reveal. The stroke
@@ -19,10 +21,8 @@ const sigPath =
 
 <div class="aurora" aria-hidden="true">
   <span class="aurora__wash"></span>
-  <span class="aurora__blob a"></span>
-  <span class="aurora__blob b"></span>
-  <span class="aurora__blob c"></span>
-  <span class="aurora__blob d"></span>
+  <span class="aurora__grid"></span>
+  <span class="aurora__tile"></span>
 
   <span class="aurora__sig">
     <svg viewBox="6.9 37.1 495.7 191.4" fill="none" preserveAspectRatio="xMidYMid meet">
@@ -54,6 +54,7 @@ const sigPath =
     overflow: hidden;
     pointer-events: none;
     z-index: 0;
+    --cell: 76px;
   }
 
   /* Static ambient wash — a refined, directional grayscale gradient in the
@@ -68,22 +69,50 @@ const sigPath =
       radial-gradient(70% 70% at 100% 45%, rgba(var(--aurora-tint), 0.035), transparent 60%);
   }
 
-  .aurora__blob {
+  /* Quadrilateral tiling — faint grid lines drawn cheaply via gradients (no
+     DOM tiles), softly vignetted so they fade at the edges. */
+  .aurora__grid {
     position: absolute;
-    width: 66%;
-    aspect-ratio: 1;
-    border-radius: 50%;
-    filter: blur(84px);
-    transform: translate(-50%, -50%) translate(var(--tx, 0%), var(--ty, 0%)) scale(var(--s, 1));
-    transition: transform var(--dur, 6s) cubic-bezier(0.45, 0, 0.55, 1);
-    will-change: transform;
+    inset: 0;
+    background-image:
+      linear-gradient(to right, rgba(var(--aurora-tint), 0.06) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(var(--aurora-tint), 0.06) 1px, transparent 1px);
+    background-size: var(--cell) var(--cell);
+    -webkit-mask-image: radial-gradient(125% 125% at 50% 40%, #000 55%, transparent 100%);
+    mask-image: radial-gradient(125% 125% at 50% 40%, #000 55%, transparent 100%);
   }
-  /* Pure grayscale ambient — neutral glows in shades of the page's own ink.
-     No colour lives here; red → rose is reserved for accents + the signature. */
-  .aurora__blob.a { left: 22%; top: 20%; --dur: 5s;   background: radial-gradient(circle, rgba(var(--aurora-tint), 0.05), transparent 70%); }
-  .aurora__blob.b { left: 74%; top: 38%; --dur: 6.5s; background: radial-gradient(circle, rgba(var(--aurora-tint), 0.04), transparent 70%); }
-  .aurora__blob.c { left: 38%; top: 82%; --dur: 4.5s; background: radial-gradient(circle, rgba(var(--aurora-tint), 0.045), transparent 72%); }
-  .aurora__blob.d { left: 84%; top: 84%; --dur: 7s;   background: radial-gradient(circle, rgba(var(--aurora-tint), 0.035), transparent 72%); }
+
+  /* A single highlighter square that snaps to the hovered cell and pops in the
+     red accent. Position is driven by JS (--tx/--ty). */
+  .aurora__tile {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--cell);
+    height: var(--cell);
+    transform: translate(var(--tx, -200px), var(--ty, -200px));
+    background: var(--accent-grad);
+    border-radius: 3px;
+    opacity: 0;
+    box-shadow: 0 0 30px 6px rgba(255, 74, 58, 0.25);
+    transition: opacity 260ms ease;
+  }
+  .aurora__tile.on {
+    opacity: 0.5;
+  }
+  .aurora__tile.pop {
+    animation: tile-pop 260ms ease-out;
+  }
+  @keyframes tile-pop {
+    0% {
+      transform: translate(var(--tx), var(--ty)) scale(0.7);
+      opacity: 0.85;
+    }
+    100% {
+      transform: translate(var(--tx), var(--ty)) scale(1);
+      opacity: 0.5;
+    }
+  }
 
   /* Penned cursive signature — real letterforms, small, faint, slow. */
   .aurora__sig {
@@ -128,7 +157,6 @@ const sigPath =
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .aurora__blob { transition: none; }
     .aurora__sig { display: none; }
   }
 </style>
@@ -140,19 +168,48 @@ const sigPath =
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const rand = (min, max) => Math.random() * (max - min) + min;
 
-    function tick() {
-      document.querySelectorAll('.aurora__blob').forEach((b) => {
-        b.style.setProperty('--tx', rand(-48, 48).toFixed(2) + '%');
-        b.style.setProperty('--ty', rand(-48, 48).toFixed(2) + '%');
-        b.style.setProperty('--s', rand(0.7, 1.65).toFixed(2));
-      });
+    // Tiling highlighter: snap the red tile to the grid cell under the cursor.
+    // rAF-throttled; only repaints when the cell actually changes.
+    const aurora = document.querySelector('.aurora');
+    const tile = document.querySelector('.aurora__tile');
+    if (aurora && tile) {
+      const cell = parseInt(getComputedStyle(aurora).getPropertyValue('--cell'), 10) || 76;
+      let queued = false;
+      let lx = 0;
+      let ly = 0;
+      let key = '';
+      const place = () => {
+        queued = false;
+        const cx = Math.floor(lx / cell);
+        const cy = Math.floor(ly / cell);
+        const k = cx + ':' + cy;
+        if (k === key) return;
+        key = k;
+        tile.style.setProperty('--tx', cx * cell + 'px');
+        tile.style.setProperty('--ty', cy * cell + 'px');
+        tile.classList.add('on');
+        tile.classList.remove('pop');
+        void tile.offsetWidth;
+        tile.classList.add('pop');
+      };
+      window.addEventListener(
+        'pointermove',
+        (e) => {
+          lx = e.clientX;
+          ly = e.clientY;
+          if (!queued) {
+            queued = true;
+            requestAnimationFrame(place);
+          }
+        },
+        { passive: true },
+      );
+      document.addEventListener('pointerleave', () => tile.classList.remove('on'));
+      window.addEventListener('blur', () => tile.classList.remove('on'));
     }
-    tick();
-    if (reduce) return;
-    setInterval(tick, 3800);
 
     const sig = document.querySelector('.aurora__sig');
-    if (sig) {
+    if (sig && !reduce) {
       const loop = () => {
         sig.style.left = rand(24, 76).toFixed(1) + '%';
         sig.style.top = rand(22, 78).toFixed(1) + '%';
