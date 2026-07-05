@@ -164,6 +164,8 @@
           // natural position. x1/y1 are clamped so the cell can't cross its
           // outer neighbours and invert them. The cell keeps the same faint
           // stroke and red band fill as every other tile — no special outline.
+          let cLi = -1;
+          let cLj = -1;
           if (brand) {
             const r = brand.getBoundingClientRect();
             const padX = 16;
@@ -182,6 +184,8 @@
             P[li + 1][lj] = [x1, y0];
             P[li + 1][lj + 1] = [x1, y1];
             P[li][lj + 1] = [x0, y1];
+            cLi = li;
+            cLj = lj;
           }
 
           quads = [];
@@ -222,6 +226,49 @@
             }
           }
 
+          // The carved rectangle is shorter than a grid row, so the cell right
+          // below it stretches into one oversized tile that looks out of place.
+          // Split just that cell into a small 3x2 grid of tiles so it reads like
+          // the rest of the mesh. Only interior points are jittered; the four
+          // border edges stay put, so the sub-tiles align exactly with the
+          // rectangle above and the neighbours around it (no gaps/tears).
+          if (cLi >= 0 && quads[cLi] && quads[cLi][cLj + 1]) {
+            const below = quads[cLi][cLj + 1];
+            const [tl, tr, br, bl] = below.p;
+            cellsG.removeChild(below.el);
+            const nx = 3;
+            const ny = 2;
+            const sj = jit / 3;
+            const lerp = (p, q, t) => [p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t];
+            const g = [];
+            for (let v = 0; v <= ny; v++) {
+              g[v] = [];
+              for (let u = 0; u <= nx; u++) {
+                const pt = lerp(lerp(tl, tr, u / nx), lerp(bl, br, u / nx), v / ny);
+                if (u > 0 && u < nx && v > 0 && v < ny) {
+                  pt[0] += rand(-sj, sj);
+                  pt[1] += rand(-sj, sj);
+                }
+                g[v][u] = pt;
+              }
+            }
+            const sub = document.createDocumentFragment();
+            for (let v = 0; v < ny; v++) {
+              for (let u = 0; u < nx; u++) {
+                const a = g[v][u];
+                const b = g[v][u + 1];
+                const c = g[v + 1][u + 1];
+                const d = g[v + 1][u];
+                const poly = document.createElementNS(NS, 'polygon');
+                poly.setAttribute(
+                  'points',
+                  `${a[0].toFixed(1)},${a[1].toFixed(1)} ${b[0].toFixed(1)},${b[1].toFixed(1)} ${c[0].toFixed(1)},${c[1].toFixed(1)} ${d[0].toFixed(1)},${d[1].toFixed(1)}`,
+                );
+                sub.appendChild(poly);
+              }
+            }
+            cellsG.appendChild(sub);
+          }
         };
 
         const applyScroll = () => {
