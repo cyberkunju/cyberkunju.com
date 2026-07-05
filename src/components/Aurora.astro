@@ -168,17 +168,18 @@
           // these points), while the rest of the mesh keeps its random jitter.
           let logo = null;
           if (brand) {
-            brand.style.transform = 'none'; // measure the natural (untranslated) box
             const r = brand.getBoundingClientRect();
             const bcx = r.left + r.width / 2 + window.scrollX;
             const bcy = r.top + r.height / 2 + window.scrollY;
-            const padX = 14;
-            const half = r.width / 2 + padX; // snug: only a little wider than the text
-            const shapeL = bcx - half;
-            const shapeR = bcx + half;
+            const padX = 9;
+            const padY = 6;
+            // Compact box centred on the text on both axes → hugs the wordmark,
+            // much smaller than a full band row (no vertical translate needed).
+            const shapeL = bcx - (r.width / 2 + padX);
+            const shapeR = bcx + (r.width / 2 + padX);
+            const yTop = bcy - (r.height / 2 + padY);
+            const yBot = bcy + (r.height / 2 + padY);
             const lj = Math.max(1, Math.min(rows - 1, Math.floor((bcy - originY) / cellY)));
-            const yTop = (lj - 1) * cellY; // full band row → tiles cleanly above/below
-            const yBot = lj * cellY;
             const cA = Math.max(0, Math.min(cols - 1, Math.floor((shapeL - originX) / cell)));
             const cB = Math.min(cols, Math.max(cA + 1, Math.ceil((shapeR - originX) / cell)));
             const span = cB - cA;
@@ -187,18 +188,16 @@
               const s = Math.sin(n * 12.9898 + 4.13) * 43758.5453;
               return (s - Math.floor(s)) * 2 - 1;
             };
-            const A = jit;
             for (let c = cA; c <= cB; c++) {
-              // The side columns bow outward (more at the bottom), so the left
-              // and right edges slant instead of being vertical, and the edges
-              // wander — an angular, organic silhouette rather than a rectangle.
-              // The outward bias keeps the wordmark comfortably inside.
+              // Sides slant outward and the edges push out a little → an angular
+              // pocket, not a rectangle. Small amplitudes (the shape is small);
+              // outward bias keeps the text inside.
               const baseX = shapeL + ((shapeR - shapeL) * (c - cA)) / span;
               const out = (c === cA ? -1 : 0) + (c === cB ? 1 : 0);
-              P[c][lj] = [baseX + out * 7 + fj(c) * A * 0.35, yTop + fj(c + 50) * A * 0.5];
-              P[c][lj + 1] = [baseX + out * 16 + fj(c + 30) * A * 0.5, yBot + fj(c + 150) * A * 0.7];
+              P[c][lj] = [baseX + out * 4 + fj(c) * 5, yTop - Math.abs(fj(c + 50)) * 4];
+              P[c][lj + 1] = [baseX + out * 9 + fj(c + 30) * 6, yBot + Math.abs(fj(c + 150)) * 5];
             }
-            logo = { cA, cB, lj, cy: (yTop + yBot) / 2, bcy };
+            logo = { cA, cB, lj };
           }
 
           quads = [];
@@ -259,9 +258,6 @@
             );
             merged.style.fillOpacity = String(MAXO);
             cellsG.appendChild(merged);
-            // The shape is already centred on the wordmark horizontally; nudge
-            // the wordmark down so it's centred vertically inside it too.
-            brand.style.transform = `translateY(${(logo.cy - logo.bcy).toFixed(1)}px)`;
           }
         };
 
