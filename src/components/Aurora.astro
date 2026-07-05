@@ -90,9 +90,9 @@ const sigPath =
     mask-image: radial-gradient(130% 130% at 50% 40%, #000 52%, transparent 100%);
   }
   .aurora__tess polygon {
-    fill: url(#tessPop);
+    fill: url(#tessPop) #ff4d3a;
     fill-opacity: 0;
-    stroke: rgba(var(--aurora-tint), 0.08);
+    stroke: rgba(var(--aurora-tint), 0.13);
     stroke-width: 1;
     transition: fill-opacity 340ms ease;
   }
@@ -199,7 +199,9 @@ const sigPath =
           }
         }
         quads = [];
-        let markup = '';
+        const NS = 'http://www.w3.org/2000/svg';
+        while (cellsG.firstChild) cellsG.removeChild(cellsG.firstChild);
+        const frag = document.createDocumentFragment();
         for (let i = 0; i < cols; i++) {
           quads[i] = [];
           for (let j = 0; j < rows; j++) {
@@ -207,18 +209,16 @@ const sigPath =
             const b = P[i + 1][j];
             const c = P[i + 1][j + 1];
             const d = P[i][j + 1];
-            quads[i][j] = { p: [a, b, c, d], el: null };
-            markup += `<polygon points="${a[0].toFixed(1)},${a[1].toFixed(1)} ${b[0].toFixed(1)},${b[1].toFixed(1)} ${c[0].toFixed(1)},${c[1].toFixed(1)} ${d[0].toFixed(1)},${d[1].toFixed(1)}"/>`;
+            const poly = document.createElementNS(NS, 'polygon');
+            poly.setAttribute(
+              'points',
+              `${a[0].toFixed(1)},${a[1].toFixed(1)} ${b[0].toFixed(1)},${b[1].toFixed(1)} ${c[0].toFixed(1)},${c[1].toFixed(1)} ${d[0].toFixed(1)},${d[1].toFixed(1)}`,
+            );
+            quads[i][j] = { p: [a, b, c, d], el: poly };
+            frag.appendChild(poly);
           }
         }
-        cellsG.innerHTML = markup;
-        const els = cellsG.children;
-        let k = 0;
-        for (let i = 0; i < cols; i++) {
-          for (let j = 0; j < rows; j++) {
-            quads[i][j].el = els[k++];
-          }
-        }
+        cellsG.appendChild(frag);
         current = null;
       };
 
