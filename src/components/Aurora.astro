@@ -4,10 +4,11 @@
  *   0. a grayscale gradient wash + an irregular quadrilateral tessellation
  *      (jittered SVG quad mesh) that scrolls with the page. It reshuffles its
  *      shapes on every load. A red frame is recomputed each build so it
- *      persists across the reshuffle: the top and bottom bands are every
- *      polygon that straddles y=0 / y=docH (the "half outside" tiles), while
- *      the left and right edges only light the polygons that show a small
- *      sliver (mostly clipped off) — no thick side frame. The top-left
+ *      persists across the reshuffle: the top and bottom bands are the polygons
+ *      straddling y=0 / y=docH (plus the next tile inward wherever that edge
+ *      tile is too short, so the band stays an even thickness), while the left
+ *      and right edges only light polygons that show a tiny sliver — no side
+ *      frame. The top-left
  *      wordmark is centred on a chosen top-left tile. Behind content
  *      (pointer-events:none).
  *   2. a real cursive "cyberkunju" signature (Sacramento script, traced as a
@@ -259,12 +260,18 @@ const sigPath =
 
           // Light the red frame, recomputed each build so it survives the
           // per-load reshuffle:
-          //   • top & bottom — every polygon that straddles y=0 / y=docH (the
-          //     "half outside" band, i.e. the top bar and the bottom edge);
-          //   • left & right — only polygons that straddle x=0 / x=vw *and* are
-          //     mostly clipped off, so just a small sliver shows. This keeps the
-          //     sides as tiny red slivers instead of a thick frame.
-          const SLIVER = 0.5; // ≤ this fraction of the tile visible ⇒ light it
+          //   • top & bottom — every polygon straddling y=0 / y=docH. If that
+          //     edge tile is short (little of it shows), also light the next
+          //     tile inward so the band keeps a consistent thickness instead of
+          //     leaving thin gaps.
+          //   • left & right — only polygons straddling x=0 / x=vw that are
+          //     almost entirely clipped off, so only tiny slivers show (no side
+          //     frame).
+          const SIDE = 0.15; // side tile lights only if < 15% of it is visible
+          const THIN = 0.6; // top/bottom edge tile is "short" below 60% of a cell
+          const light = (i, j) => {
+            if (quads[i] && quads[i][j]) quads[i][j].el.classList.add('edge');
+          };
           for (let i = 0; i < cols; i++) {
             for (let j = 0; j < rows; j++) {
               const [pa, pb, pc, pd] = quads[i][j].p;
@@ -273,12 +280,20 @@ const sigPath =
               const minY = Math.min(pa[1], pb[1], pc[1], pd[1]);
               const maxY = Math.max(pa[1], pb[1], pc[1], pd[1]);
               const w = maxX - minX;
-              const topBottom = (minY < 0 && maxY > 0) || (minY < docH && maxY > docH);
-              const leftSliver = minX < 0 && maxX > 0 && maxX / w < SLIVER;
-              const rightSliver = minX < vw && maxX > vw && (vw - minX) / w < SLIVER;
-              if (topBottom || leftSliver || rightSliver) {
-                quads[i][j].el.classList.add('edge');
+
+              // Top band (fill downward when the straddling tile is short).
+              if (minY < 0 && maxY > 0) {
+                light(i, j);
+                if (maxY < THIN * cell) light(i, j + 1);
               }
+              // Bottom band (mirror: fill upward).
+              if (minY < docH && maxY > docH) {
+                light(i, j);
+                if (docH - minY < THIN * cell) light(i, j - 1);
+              }
+              // Sides: tiny slivers only.
+              if (minX < 0 && maxX > 0 && maxX / w < SIDE) light(i, j);
+              if (minX < vw && maxX > vw && (vw - minX) / w < SIDE) light(i, j);
             }
           }
 
