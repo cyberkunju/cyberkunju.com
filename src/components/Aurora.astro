@@ -2,13 +2,14 @@
 /**
  * Aurora — living ambient background:
  *   0. a grayscale gradient wash + an irregular quadrilateral tessellation
- *      (jittered SVG quad mesh) that scrolls with the page.
- *      TEMP authoring mode: the jitter is seeded so the mesh is identical on
- *      every load/rebuild; clicking a tile toggles it red, and a fixed picker
- *      overlay shows a live, copyable list of the selected [i,j] tiles. Revert
- *      the seed and remove the click/picker block to restore the shipping
- *      behaviour. The top-left wordmark is centred on a chosen top-left tile.
- *      Behind content (pointer-events:none).
+ *      (jittered SVG quad mesh) that scrolls with the page. It reshuffles its
+ *      shapes on every load. A red frame is recomputed each build so it
+ *      persists across the reshuffle: the top and bottom bands are every
+ *      polygon that straddles y=0 / y=docH (the "half outside" tiles), while
+ *      the left and right edges only light the polygons that show a small
+ *      sliver (mostly clipped off) — no thick side frame. The top-left
+ *      wordmark is centred on a chosen top-left tile. Behind content
+ *      (pointer-events:none).
  *   2. a real cursive "cyberkunju" signature (Sacramento script, traced as a
  *      single stroke via stroke-dashoffset) — slowly penned, faint, then it
  *      fades and re-signs at a new random spot. Not a wipe reveal. The stroke
@@ -166,61 +167,10 @@ const sigPath =
     stroke-width: 1;
     transition: fill-opacity 340ms ease;
   }
-  /* TEMP authoring mode: hand-picked tiles (click to toggle). */
-  .aurora__tess polygon.sel {
+  /* Red frame — top/bottom bands + small left/right slivers. Lit in JS on
+     every (re)build, so it persists across the mesh's per-load reshuffle. */
+  .aurora__tess polygon.edge {
     fill-opacity: 0.5;
-  }
-
-  /* TEMP authoring overlay — remove together with the picker JS block. */
-  .aurora-picker {
-    position: fixed;
-    right: 12px;
-    bottom: 12px;
-    z-index: 9999;
-    width: min(320px, 46vw);
-    padding: 8px 10px;
-    border: 1px solid rgba(255, 77, 58, 0.55);
-    border-radius: 8px;
-    background: rgba(0, 0, 0, 0.82);
-    color: #fff;
-    font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
-  }
-  .aurora-picker__hd {
-    margin-bottom: 6px;
-    color: #ff6a4a;
-  }
-  .aurora-picker__out {
-    width: 100%;
-    resize: vertical;
-    background: rgba(255, 255, 255, 0.06);
-    color: #fff;
-    border: 0;
-    border-radius: 4px;
-    padding: 6px;
-    font: inherit;
-  }
-  .aurora-picker__row {
-    display: flex;
-    gap: 6px;
-    margin-top: 6px;
-  }
-  .aurora-picker__btn {
-    flex: 1;
-    padding: 4px 6px;
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    border-radius: 4px;
-    background: rgba(255, 255, 255, 0.08);
-    color: #fff;
-    font: inherit;
-    cursor: pointer;
-  }
-  .aurora-picker__btn:hover {
-    background: rgba(255, 77, 58, 0.25);
-  }
-  .aurora-picker__hint {
-    margin-top: 6px;
-    opacity: 0.6;
   }
 </style>
 
@@ -253,27 +203,11 @@ const sigPath =
         let cols = 0;
         let rows = 0;
         let target = null;
-        // TEMP authoring mode: tiles hand-picked by clicking; keys are "i,j".
-        const selected = new Set();
 
         const centroid = (p) => [
           (p[0][0] + p[1][0] + p[2][0] + p[3][0]) / 4,
           (p[0][1] + p[1][1] + p[2][1] + p[3][1]) / 4,
         ];
-
-        const inQuad = (px, py, poly) => {
-          let inside = false;
-          for (let i = 0, n = poly.length, j = n - 1; i < n; j = i++) {
-            const xi = poly[i][0];
-            const yi = poly[i][1];
-            const xj = poly[j][0];
-            const yj = poly[j][1];
-            if (yi > py !== yj > py && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi) {
-              inside = !inside;
-            }
-          }
-          return inside;
-        };
 
         const positionBrand = () => {
           if (!brand || !target) return;
@@ -292,22 +226,14 @@ const sigPath =
           svg.setAttribute('viewBox', `0 0 ${vw} ${docH}`);
           cols = Math.ceil((vw + 2 * cell) / cell);
           rows = Math.ceil((docH + 2 * cell) / cell);
-          // TEMP: seeded jitter (mulberry32) so the mesh is byte-identical on
-          // every load and rebuild — freezes the shapes while hand-picking
-          // tiles. Reset each build. Swap sjit() back to rand(-jit, jit) to
-          // restore the per-load reshuffle.
-          let seed = 0x9e3779b9 | 0;
-          const sjit = () => {
-            seed = (seed + 0x6d2b79f5) | 0;
-            let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-            t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-            return ((((t ^ (t >>> 14)) >>> 0) / 4294967296) * 2 - 1) * jit;
-          };
           const P = [];
           for (let i = 0; i <= cols; i++) {
             P[i] = [];
             for (let j = 0; j <= rows; j++) {
-              P[i][j] = [originX + i * cell + sjit(), originY + j * cell + sjit()];
+              P[i][j] = [
+                originX + i * cell + rand(-jit, jit),
+                originY + j * cell + rand(-jit, jit),
+              ];
             }
           }
           quads = [];
@@ -331,12 +257,30 @@ const sigPath =
           }
           cellsG.appendChild(frag);
 
-          // TEMP authoring mode: re-apply the hand-picked selection to the
-          // freshly built tiles so it survives resize rebuilds.
-          selected.forEach((k) => {
-            const [i, j] = k.split(',').map(Number);
-            if (quads[i] && quads[i][j]) quads[i][j].el.classList.add('sel');
-          });
+          // Light the red frame, recomputed each build so it survives the
+          // per-load reshuffle:
+          //   • top & bottom — every polygon that straddles y=0 / y=docH (the
+          //     "half outside" band, i.e. the top bar and the bottom edge);
+          //   • left & right — only polygons that straddle x=0 / x=vw *and* are
+          //     mostly clipped off, so just a small sliver shows. This keeps the
+          //     sides as tiny red slivers instead of a thick frame.
+          const SLIVER = 0.5; // ≤ this fraction of the tile visible ⇒ light it
+          for (let i = 0; i < cols; i++) {
+            for (let j = 0; j < rows; j++) {
+              const [pa, pb, pc, pd] = quads[i][j].p;
+              const minX = Math.min(pa[0], pb[0], pc[0], pd[0]);
+              const maxX = Math.max(pa[0], pb[0], pc[0], pd[0]);
+              const minY = Math.min(pa[1], pb[1], pc[1], pd[1]);
+              const maxY = Math.max(pa[1], pb[1], pc[1], pd[1]);
+              const w = maxX - minX;
+              const topBottom = (minY < 0 && maxY > 0) || (minY < docH && maxY > docH);
+              const leftSliver = minX < 0 && maxX > 0 && maxX / w < SLIVER;
+              const rightSliver = minX < vw && maxX > vw && (vw - minX) / w < SLIVER;
+              if (topBottom || leftSliver || rightSliver) {
+                quads[i][j].el.classList.add('edge');
+              }
+            }
+          }
 
           // Centre the wordmark on a comfortable top-left tile.
           const anchor = [110, 56];
@@ -360,78 +304,6 @@ const sigPath =
         const applyScroll = () => {
           svg.style.transform = `translate3d(0, ${-window.scrollY}px, 0)`;
         };
-
-        // TEMP authoring overlay: a live, copyable list of the selected tiles.
-        const picker = document.createElement('div');
-        picker.className = 'aurora-picker';
-        picker.innerHTML =
-          '<div class="aurora-picker__hd">aurora tiles · <span class="aurora-picker__n">0 tiles</span></div>' +
-          '<textarea class="aurora-picker__out" readonly rows="4" aria-label="selected aurora tiles">[]</textarea>' +
-          '<div class="aurora-picker__row">' +
-          '<button type="button" class="aurora-picker__btn" data-act="copy">copy</button>' +
-          '<button type="button" class="aurora-picker__btn" data-act="clear">clear</button>' +
-          '</div>' +
-          '<div class="aurora-picker__hint">click a tile to toggle it red</div>';
-        document.body.appendChild(picker);
-        const outEl = picker.querySelector('.aurora-picker__out');
-        const nEl = picker.querySelector('.aurora-picker__n');
-
-        const renderLog = () => {
-          const arr = [...selected]
-            .map((k) => k.split(',').map(Number))
-            .sort((a, b) => a[0] - b[0] || a[1] - b[1]);
-          const json = JSON.stringify(arr);
-          nEl.textContent = arr.length + (arr.length === 1 ? ' tile' : ' tiles');
-          outEl.value = json;
-          console.log('[aurora] selected ' + arr.length + ':', json);
-        };
-
-        picker.addEventListener('click', (e) => {
-          const act = e.target && e.target.dataset && e.target.dataset.act;
-          if (act === 'copy') {
-            outEl.select();
-            if (navigator.clipboard) navigator.clipboard.writeText(outEl.value).catch(() => {});
-          } else if (act === 'clear') {
-            selected.forEach((k) => {
-              const [i, j] = k.split(',').map(Number);
-              if (quads[i] && quads[i][j]) quads[i][j].el.classList.remove('sel');
-            });
-            selected.clear();
-            renderLog();
-          }
-        });
-
-        // Click toggles the tile under the pointer, ignoring real interactives
-        // and the picker overlay itself. (TEMP authoring mode.)
-        window.addEventListener('click', (e) => {
-          if (
-            e.target.closest &&
-            e.target.closest('a, button, input, textarea, select, [role="button"], .aurora-picker')
-          ) {
-            return;
-          }
-          const px = e.pageX;
-          const py = e.pageY;
-          const gi = Math.floor((px - originX) / cell);
-          const gj = Math.floor((py - originY) / cell);
-          for (let i = gi - 1; i <= gi + 1; i++) {
-            for (let j = gj - 1; j <= gj + 1; j++) {
-              if (i < 0 || j < 0 || i >= cols || j >= rows) continue;
-              if (inQuad(px, py, quads[i][j].p)) {
-                const key = i + ',' + j;
-                if (selected.has(key)) {
-                  selected.delete(key);
-                  quads[i][j].el.classList.remove('sel');
-                } else {
-                  selected.add(key);
-                  quads[i][j].el.classList.add('sel');
-                }
-                renderLog();
-                return;
-              }
-            }
-          }
-        });
 
         let sraf = false;
         window.addEventListener(
