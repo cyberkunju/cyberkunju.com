@@ -159,49 +159,14 @@ main {
 }
 
 .brand {
-  position: relative;
   display: inline-block;
-  font-size: var(--step-2);
-  font-weight: 800;
-  /* Uppercase wordmark with open tracking → a deliberate, premium logo. */
+  /* Monospace, uppercase, lightly tracked → a crisp, professional wordmark
+     (fits the "cyberkunju" handle better than the display face). */
+  font-family: var(--font-mono);
+  font-size: var(--step-1);
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.09em;
-}
-
-/* Word A stays in normal flow, so it alone sizes the wordmark and the logo
-   shape is exactly as before. Word B is overlaid on top (out of flow) and the
-   two cross-fade every 2s with a soft vertical slide + blur. */
-.brand__word {
-  display: block;
-  transition:
-    opacity 0.5s var(--ease),
-    transform 0.5s var(--ease),
-    filter 0.5s var(--ease);
-}
-.brand__word--b {
-  position: absolute;
-  inset: 0 auto auto 0;
-  white-space: nowrap;
-  opacity: 0;
-  transform: translateY(0.4em);
-  filter: blur(4px);
-}
-.brand.is-alt .brand__word--a {
-  opacity: 0;
-  transform: translateY(-0.4em);
-  filter: blur(4px);
-}
-.brand.is-alt .brand__word--b {
-  opacity: 1;
-  transform: none;
-  filter: none;
-}
-@media (prefers-reduced-motion: reduce) {
-  .brand__word {
-    transition: opacity 0.2s var(--ease);
-    transform: none;
-    filter: none;
-  }
+  letter-spacing: 0.08em;
 }
 
 .site-footer__inner {

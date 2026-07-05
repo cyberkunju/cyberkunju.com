@@ -3,19 +3,5 @@ import { site } from '../config/site';
 ---
 
 <header class="site-header">
-  <a class="brand" href="/" aria-label={`${site.name} — home`}>
-    <span class="brand__word brand__word--a" aria-hidden="true">{site.handle}</span>
-    <span class="brand__word brand__word--b" aria-hidden="true">{site.name}</span>
-  </a>
+  <a class="brand" href="/" aria-label={`${site.name} — home`}>{site.handle}</a>
 </header>
-
-<script is:inline>
-  // Cross-fade the wordmark between the handle and the name every 2s. Both
-  // labels are overlaid in one grid cell, so the box (and the logo shape that
-  // measures it) stays put. Skipped when the visitor prefers reduced motion.
-  (() => {
-    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const b = document.querySelector('.brand');
-    if (b) setInterval(() => b.classList.toggle('is-alt'), 2000);
-  })();
-</script>
