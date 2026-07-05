@@ -6,9 +6,10 @@
  *      shapes on every load. A red frame is recomputed each build so it
  *      persists across the reshuffle: a single flat red band hugs the top and
  *      bottom edges only (one grid-row deep; both edges are grid-aligned so the
- *      band is even). The top-left mesh cell is carved to a clean rectangle
- *      sized to the wordmark, so the "cyberkunju" logo sits centred inside one
- *      polygon. Behind content (pointer-events:none).
+ *      band is even). The mesh stays fully organic; a small clean rectangle is
+ *      overlaid on the wordmark (a --bg mask + the band's red on top) so the
+ *      "cyberkunju" logo sits in one tidy red rectangle amid the organic tiles.
+ *      Behind content (pointer-events:none).
  *   1. filmic grain
  *
  * Fixed, site-wide, behind content.
@@ -114,8 +115,8 @@
       // Irregular quadrilateral tessellation: a jittered grid of points forms a
       // quad mesh (4 meet at each vertex). It spans the whole document and is
       // translated by -scrollY so it scrolls with the page. Tiles within one
-      // row of the top/bottom edge light red (the band); the top-left cell is
-      // carved to a clean full-row rectangle that houses the wordmark.
+      // row of the top/bottom edge light red (the band); a small clean
+      // rectangle is overlaid on the wordmark, over the untouched mesh.
       const aurora = document.querySelector('.aurora');
       const scroll = document.querySelector('.aurora-scroll');
       const svg = scroll && scroll.querySelector('.aurora__tess');
@@ -158,32 +159,6 @@
             }
           }
 
-          // Frame the wordmark in one clean rectangle, aligned to the grid.
-          // Snap the block of grid points that spans the wordmark (a full row
-          // tall, across the whole grid columns that bracket it) to their exact
-          // grid positions; those row cells are merged into a single red
-          // rectangle further below. Because the rectangle lands on real grid
-          // lines, every neighbouring cell keeps its natural size and polygon
-          // shape — no stretched trapezoids, no wedges.
-          let logoRect = null;
-          if (brand) {
-            const r = brand.getBoundingClientRect();
-            const padX = 14;
-            const bcy = r.top + r.height / 2 + window.scrollY;
-            const lj = Math.max(0, Math.min(rows - 1, Math.floor((bcy - originY) / cellY)));
-            const wx0 = r.left + window.scrollX - padX;
-            const wx1 = r.right + window.scrollX + padX;
-            const cA = Math.max(0, Math.floor((wx0 - originX) / cell));
-            const cB = Math.min(cols, Math.max(cA + 1, Math.ceil((wx1 - originX) / cell)));
-            const yTop = (lj - 1) * cellY;
-            const yBot = lj * cellY;
-            for (let c = cA; c <= cB; c++) {
-              P[c][lj] = [originX + c * cell, yTop];
-              P[c][lj + 1] = [originX + c * cell, yBot];
-            }
-            logoRect = { cA, cB, lj, yTop, yBot };
-          }
-
           quads = [];
           while (cellsG.firstChild) cellsG.removeChild(cellsG.firstChild);
           const frag = document.createDocumentFragment();
@@ -222,22 +197,30 @@
             }
           }
 
-          // Merge the snapped logo-row cells into one clean red rectangle (drop
-          // their individual polygons so there's no divider inside it).
-          if (logoRect) {
-            const { cA, cB, lj, yTop, yBot } = logoRect;
-            for (let c = cA; c < cB; c++) {
-              if (quads[c] && quads[c][lj]) cellsG.removeChild(quads[c][lj].el);
-            }
-            const x0 = originX + cA * cell;
-            const x1 = originX + cB * cell;
-            const rectEl = document.createElementNS(NS, 'polygon');
-            rectEl.setAttribute(
-              'points',
-              `${x0.toFixed(1)},${yTop.toFixed(1)} ${x1.toFixed(1)},${yTop.toFixed(1)} ${x1.toFixed(1)},${yBot.toFixed(1)} ${x0.toFixed(1)},${yBot.toFixed(1)}`,
-            );
-            rectEl.style.fillOpacity = String(MAXO);
-            cellsG.appendChild(rectEl);
+          // Leave the mesh fully organic and drop a small clean rectangle over
+          // the wordmark. Two stacked polygons: an opaque --bg mask that hides
+          // the tiles/strokes underneath, then the same red gradient at the
+          // band's opacity on top — so the rectangle reads as the band colour
+          // exactly, just clean. The organic tiles remain all around it.
+          if (brand) {
+            const r = brand.getBoundingClientRect();
+            const padX = 12;
+            const padY = 8;
+            const x0 = (r.left + window.scrollX - padX).toFixed(1);
+            const y0 = (r.top + window.scrollY - padY).toFixed(1);
+            const x1 = (r.right + window.scrollX + padX).toFixed(1);
+            const y1 = (r.bottom + window.scrollY + padY).toFixed(1);
+            const pts = `${x0},${y0} ${x1},${y0} ${x1},${y1} ${x0},${y1}`;
+            const mask = document.createElementNS(NS, 'polygon');
+            mask.setAttribute('points', pts);
+            mask.style.fill = 'var(--bg)';
+            mask.style.fillOpacity = '1';
+            mask.style.stroke = 'none';
+            const fillRect = document.createElementNS(NS, 'polygon');
+            fillRect.setAttribute('points', pts);
+            fillRect.style.fillOpacity = String(MAXO);
+            cellsG.appendChild(mask);
+            cellsG.appendChild(fillRect);
           }
         };
 
