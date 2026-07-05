@@ -227,17 +227,18 @@
           }
 
           // The carved rectangle is shorter than a grid row, so the cell right
-          // below it stretches into one oversized tile that looks out of place.
-          // Split just that cell into a small 3x2 grid of tiles so it reads like
-          // the rest of the mesh. Only interior points are jittered; the four
-          // border edges stay put, so the sub-tiles align exactly with the
-          // rectangle above and the neighbours around it (no gaps/tears).
+          // below it stretches into one oversized tile. Split it into a small
+          // grid of tiles and light the ones that fall inside the top band red,
+          // so the red bar continues under the rectangle and the wordmark reads
+          // as embedded in the middle of it. Only interior points are jittered;
+          // the border edges stay put so the sub-tiles align with the rectangle
+          // above and the neighbours around it (no gaps/tears).
           if (cLi >= 0 && quads[cLi] && quads[cLi][cLj + 1]) {
             const below = quads[cLi][cLj + 1];
             const [tl, tr, br, bl] = below.p;
             cellsG.removeChild(below.el);
             const nx = 3;
-            const ny = 2;
+            const ny = 3;
             const sj = jit / 3;
             const lerp = (p, q, t) => [p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t];
             const g = [];
@@ -264,6 +265,10 @@
                   'points',
                   `${a[0].toFixed(1)},${a[1].toFixed(1)} ${b[0].toFixed(1)},${b[1].toFixed(1)} ${c[0].toFixed(1)},${c[1].toFixed(1)} ${d[0].toFixed(1)},${d[1].toFixed(1)}`,
                 );
+                // Light sub-tiles within the top band so the red bar runs on
+                // under the rectangle.
+                const scy = (a[1] + b[1] + c[1] + d[1]) / 4;
+                if (Math.min(scy, docH - scy) < DEPTH) poly.style.fillOpacity = String(MAXO);
                 sub.appendChild(poly);
               }
             }
