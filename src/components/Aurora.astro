@@ -171,10 +171,8 @@
             const r = brand.getBoundingClientRect();
             const bcx = r.left + r.width / 2 + window.scrollX;
             const bcy = r.top + r.height / 2 + window.scrollY;
-            const padX = 9;
-            const padY = 6;
-            // Compact box centred on the text on both axes → hugs the wordmark,
-            // much smaller than a full band row (no vertical translate needed).
+            const padX = 8;
+            const padY = 5;
             const shapeL = bcx - (r.width / 2 + padX);
             const shapeR = bcx + (r.width / 2 + padX);
             const yTop = bcy - (r.height / 2 + padY);
@@ -183,19 +181,21 @@
             const cA = Math.max(0, Math.min(cols - 1, Math.floor((shapeL - originX) / cell)));
             const cB = Math.min(cols, Math.max(cA + 1, Math.ceil((shapeR - originX) / cell)));
             const span = cB - cA;
-            const fj = (n) => {
-              // deterministic signed jitter in [-1, 1) → shape is identical every load
+            const fs = (n) => {
+              // deterministic signed value in [-1, 1) → shape is identical every load
               const s = Math.sin(n * 12.9898 + 4.13) * 43758.5453;
               return (s - Math.floor(s)) * 2 - 1;
             };
             for (let c = cA; c <= cB; c++) {
-              // Sides slant outward and the edges push out a little → an angular
-              // pocket, not a rectangle. Small amplitudes (the shape is small);
-              // outward bias keeps the text inside.
+              // Displace each boundary vertex by a real (but fixed) random amount
+              // the way the mesh cells do — but only OUTWARD so the wordmark
+              // stays inside: end columns push left/right, tops push up, bottoms
+              // push down. Result is a natural, irregular polygon, not a box.
               const baseX = shapeL + ((shapeR - shapeL) * (c - cA)) / span;
-              const out = (c === cA ? -1 : 0) + (c === cB ? 1 : 0);
-              P[c][lj] = [baseX + out * 4 + fj(c) * 5, yTop - Math.abs(fj(c + 50)) * 4];
-              P[c][lj + 1] = [baseX + out * 9 + fj(c + 30) * 6, yBot + Math.abs(fj(c + 150)) * 5];
+              const push = (n) =>
+                c === cA ? -Math.abs(fs(n)) * jit * 0.7 : c === cB ? Math.abs(fs(n)) * jit * 0.7 : fs(n) * jit * 0.4;
+              P[c][lj] = [baseX + push(c), yTop - Math.abs(fs(c + 50)) * jit * 0.6];
+              P[c][lj + 1] = [baseX + push(c + 9), yBot + Math.abs(fs(c + 150)) * jit * 0.6];
             }
             logo = { cA, cB, lj };
           }
