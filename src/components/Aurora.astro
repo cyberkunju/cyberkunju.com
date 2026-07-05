@@ -86,30 +86,12 @@ const sigPath =
     inset: 0;
     width: 100%;
     height: 100%;
-    -webkit-mask-image: radial-gradient(130% 130% at 50% 40%, #000 52%, transparent 100%);
-    mask-image: radial-gradient(130% 130% at 50% 40%, #000 52%, transparent 100%);
+    -webkit-mask-image: radial-gradient(130% 130% at 50% 40%, #000 55%, transparent 100%);
+    mask-image: radial-gradient(130% 130% at 50% 40%, #000 55%, transparent 100%);
   }
-  .aurora__tess polygon {
-    fill: url(#tessPop) #ff4d3a;
-    fill-opacity: 0;
-    stroke: rgba(var(--aurora-tint), 0.13);
-    stroke-width: 1;
-    transition: fill-opacity 340ms ease;
-  }
-  .aurora__tess polygon.on {
-    animation: tess-pop 320ms ease-out forwards;
-  }
-  @keyframes tess-pop {
-    0% {
-      fill-opacity: 0;
-    }
-    45% {
-      fill-opacity: 0.62;
-    }
-    100% {
-      fill-opacity: 0.46;
-    }
-  }
+  /* Polygon styles live in the is:global block below — the tiles are created in
+     JS and don't carry Astro's scoped-style attribute, so scoped rules miss
+     them (which left them at the SVG default black fill → a black page). */
 
   /* Penned cursive signature — real letterforms, small, faint, slow. */
   .aurora__sig {
@@ -155,6 +137,33 @@ const sigPath =
 
   @media (prefers-reduced-motion: reduce) {
     .aurora__sig { display: none; }
+  }
+</style>
+
+<style is:global>
+  /* Tessellation tiles are created in JS, so they don't get Astro's scoped
+     attribute — their styles must be global. Scoped by .aurora__tess so they
+     don't leak. Default (no hover) tiles are transparent; only strokes show. */
+  .aurora__tess polygon {
+    fill: url(#tessPop) #ff4d3a;
+    fill-opacity: 0;
+    stroke: rgba(var(--aurora-tint), 0.15);
+    stroke-width: 1;
+    transition: fill-opacity 340ms ease;
+  }
+  .aurora__tess polygon.on {
+    animation: tess-pop 320ms ease-out forwards;
+  }
+  @keyframes tess-pop {
+    0% {
+      fill-opacity: 0;
+    }
+    45% {
+      fill-opacity: 0.62;
+    }
+    100% {
+      fill-opacity: 0.46;
+    }
   }
 </style>
 
