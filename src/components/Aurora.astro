@@ -158,31 +158,30 @@
             }
           }
 
-          // Carve a clean rectangle for the wordmark in the top-left cell. It
-          // spans a FULL grid row (top/bottom snapped to the row's grid lines)
-          // and is only as wide as the wordmark plus padding. Because it keeps
-          // the row's height, the cells above/below/beside it stay their normal
-          // size — no wedges, no oversized tile, so nothing needs subdividing.
-          // The band fill lights it red like the rest of the row, so the logo
-          // sits in one clean red rectangle. x0/x1 are clamped so the cell can't
-          // cross its side neighbours and invert them.
+          // Frame the wordmark in one clean rectangle, aligned to the grid.
+          // Snap the block of grid points that spans the wordmark (a full row
+          // tall, across the whole grid columns that bracket it) to their exact
+          // grid positions; those row cells are merged into a single red
+          // rectangle further below. Because the rectangle lands on real grid
+          // lines, every neighbouring cell keeps its natural size and polygon
+          // shape — no stretched trapezoids, no wedges.
+          let logoRect = null;
           if (brand) {
             const r = brand.getBoundingClientRect();
-            const padX = 16;
-            const bcx = r.left + r.width / 2 + window.scrollX;
+            const padX = 14;
             const bcy = r.top + r.height / 2 + window.scrollY;
-            const li = Math.max(0, Math.min(cols - 1, Math.floor((bcx - originX) / cell)));
             const lj = Math.max(0, Math.min(rows - 1, Math.floor((bcy - originY) / cellY)));
-            const yTop = (lj - 1) * cellY; // this row's top grid line
-            const yBot = lj * cellY; // this row's bottom grid line
-            let x0 = r.left + window.scrollX - padX;
-            let x1 = r.right + window.scrollX + padX;
-            if (P[li - 1]) x0 = Math.max(x0, P[li - 1][lj][0] + 8);
-            if (P[li + 2]) x1 = Math.min(x1, P[li + 2][lj][0] - 8);
-            P[li][lj] = [x0, yTop];
-            P[li + 1][lj] = [x1, yTop];
-            P[li + 1][lj + 1] = [x1, yBot];
-            P[li][lj + 1] = [x0, yBot];
+            const wx0 = r.left + window.scrollX - padX;
+            const wx1 = r.right + window.scrollX + padX;
+            const cA = Math.max(0, Math.floor((wx0 - originX) / cell));
+            const cB = Math.min(cols, Math.max(cA + 1, Math.ceil((wx1 - originX) / cell)));
+            const yTop = (lj - 1) * cellY;
+            const yBot = lj * cellY;
+            for (let c = cA; c <= cB; c++) {
+              P[c][lj] = [originX + c * cell, yTop];
+              P[c][lj + 1] = [originX + c * cell, yBot];
+            }
+            logoRect = { cA, cB, lj, yTop, yBot };
           }
 
           quads = [];
@@ -223,6 +222,23 @@
             }
           }
 
+          // Merge the snapped logo-row cells into one clean red rectangle (drop
+          // their individual polygons so there's no divider inside it).
+          if (logoRect) {
+            const { cA, cB, lj, yTop, yBot } = logoRect;
+            for (let c = cA; c < cB; c++) {
+              if (quads[c] && quads[c][lj]) cellsG.removeChild(quads[c][lj].el);
+            }
+            const x0 = originX + cA * cell;
+            const x1 = originX + cB * cell;
+            const rectEl = document.createElementNS(NS, 'polygon');
+            rectEl.setAttribute(
+              'points',
+              `${x0.toFixed(1)},${yTop.toFixed(1)} ${x1.toFixed(1)},${yTop.toFixed(1)} ${x1.toFixed(1)},${yBot.toFixed(1)} ${x0.toFixed(1)},${yBot.toFixed(1)}`,
+            );
+            rectEl.style.fillOpacity = String(MAXO);
+            cellsG.appendChild(rectEl);
+          }
         };
 
         const applyScroll = () => {
