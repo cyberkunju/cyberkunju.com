@@ -6,9 +6,10 @@
  *      shapes on every load. A red frame is recomputed each build so it
  *      persists across the reshuffle: a single flat red band hugs the top and
  *      bottom edges only (one grid-row deep; both edges are grid-aligned so the
- *      band is even). The mesh stays fully organic; the "cyberkunju" wordmark
- *      sits over it in the top-left (no backing tile). Behind content
- *      (pointer-events:none).
+ *      band is even). The band-row tiles the top-left wordmark spans are merged
+ *      into one full-opacity red shape (no divider through the text) so the
+ *      black "cyberkunju" wordmark reads on it; the rest of the mesh stays
+ *      organic. Behind content (pointer-events:none).
  *   1. filmic grain
  *
  * Fixed, site-wide, behind content.
@@ -114,11 +115,13 @@
       // Irregular quadrilateral tessellation: a jittered grid of points forms a
       // quad mesh (4 meet at each vertex). It spans the whole document and is
       // translated by -scrollY so it scrolls with the page. Tiles within one
-      // row of the top/bottom edge light red (the band).
+      // row of the top/bottom edge light red (the band); the tiles under the
+      // wordmark are merged into one bright red shape as its backing.
       const aurora = document.querySelector('.aurora');
       const scroll = document.querySelector('.aurora-scroll');
       const svg = scroll && scroll.querySelector('.aurora__tess');
       const cellsG = svg && svg.querySelector('.aurora__cells');
+      const brand = document.querySelector('.brand');
 
       if (aurora && scroll && svg && cellsG) {
         const cell = parseInt(getComputedStyle(aurora).getPropertyValue('--cell'), 10) || 92;
@@ -194,6 +197,34 @@
             }
           }
 
+          // Logo backing: merge the band-row tiles the wordmark spans into one
+          // shape and lift it to full opacity, so there's no divider through
+          // the text and the black wordmark reads on a bright red field. The
+          // merged outline uses the jittered grid points, so it keeps organic
+          // edges (not a rectangle). Recomputed every build → adapts to any
+          // viewport size and to the reshuffle.
+          if (brand) {
+            const r = brand.getBoundingClientRect();
+            const wx0 = r.left + window.scrollX;
+            const wx1 = r.right + window.scrollX;
+            const wcy = r.top + r.height / 2 + window.scrollY;
+            const lj = Math.max(0, Math.min(rows - 1, Math.floor((wcy - originY) / cellY)));
+            const cA = Math.max(0, Math.floor((wx0 - originX) / cell));
+            const cB = Math.min(cols, Math.max(cA + 1, Math.ceil((wx1 - originX) / cell)));
+            for (let c = cA; c < cB; c++) {
+              if (quads[c] && quads[c][lj]) cellsG.removeChild(quads[c][lj].el);
+            }
+            const outline = [];
+            for (let c = cA; c <= cB; c++) outline.push(P[c][lj]); // top edge L→R
+            for (let c = cB; c >= cA; c--) outline.push(P[c][lj + 1]); // bottom edge R→L
+            const merged = document.createElementNS(NS, 'polygon');
+            merged.setAttribute(
+              'points',
+              outline.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' '),
+            );
+            merged.style.fillOpacity = '1';
+            cellsG.appendChild(merged);
+          }
         };
 
         const applyScroll = () => {
