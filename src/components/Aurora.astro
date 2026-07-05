@@ -268,7 +268,8 @@
             }
             sx /= outline.length;
             sy /= outline.length;
-            brand.style.transform = `translate(${(sx - logo.cx).toFixed(1)}px, ${(sy - logo.cy).toFixed(1)}px)`;
+            const nudgeX = 8; // shift the wordmark slightly left of the centroid
+            brand.style.transform = `translate(${(sx - logo.cx - nudgeX).toFixed(1)}px, ${(sy - logo.cy).toFixed(1)}px)`;
           }
         };
 

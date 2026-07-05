@@ -167,10 +167,17 @@ main {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  /* Subtle emboss: dark edge below, faint highlight above → raised/pressed. */
+  /* Really subtle brushed-steel / chrome sheen: a cool-grey vertical gradient
+     clipped to the text (grayscale, so it stays on-brand). */
+  background: linear-gradient(180deg, #ffffff 0%, #eceef1 47%, #cfd3d9 55%, #f6f7f8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  /* Subtle emboss under the metal: dark edge below, faint highlight above. */
   text-shadow:
-    0 1px 1px rgba(0, 0, 0, 0.45),
-    0 -1px 0 rgba(255, 255, 255, 0.18);
+    0 1px 1px rgba(0, 0, 0, 0.4),
+    0 -1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .site-footer__inner {
