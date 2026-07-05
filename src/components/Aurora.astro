@@ -6,10 +6,11 @@
  *      shapes on every load. A red frame is recomputed each build so it
  *      persists across the reshuffle: a single flat red band hugs the top and
  *      bottom edges only (one grid-row deep; both edges are grid-aligned so the
- *      band is even). A fixed red shape is pinned around the corner "cyberkunju"
- *      wordmark (geometry from the wordmark box, not the mesh) so it stays put
- *      every load while the rest of the mesh reshuffles around it; the white
- *      wordmark sits centred in it. Behind content (pointer-events:none).
+ *      band is even). The mesh cell under the corner "cyberkunju" wordmark has
+ *      its boundary points pinned to fixed positions, so that merged cell is
+ *      the same shape every load (and still tiles with its neighbours) while
+ *      the rest of the mesh reshuffles; the white wordmark sits in it. Behind
+ *      content (pointer-events:none).
  *   1. filmic grain
  *
  * Fixed, site-wide, behind content.
@@ -115,8 +116,9 @@
       // Irregular quadrilateral tessellation: a jittered grid of points forms a
       // quad mesh (4 meet at each vertex). It spans the whole document and is
       // translated by -scrollY so it scrolls with the page. Tiles within one
-      // row of the top/bottom edge light red (the band); a fixed red shape is
-      // pinned around the top-left wordmark and stays put across reshuffles.
+      // row of the top/bottom edge light red (the band); the cell under the
+      // top-left wordmark is pinned (fixed points) so it stays put and still
+      // tiles, while the rest of the mesh reshuffles.
       const aurora = document.querySelector('.aurora');
       const scroll = document.querySelector('.aurora-scroll');
       const svg = scroll && scroll.querySelector('.aurora__tess');
@@ -159,6 +161,29 @@
             }
           }
 
+          // Pin the permanent logo cell. Derive its grid columns/row from the
+          // corner-pinned wordmark, then overwrite just those boundary points
+          // with fixed (deterministic) positions — so the merged logo shape is
+          // identical on every load and TILES with its neighbours (they share
+          // these points), while the rest of the mesh keeps its random jitter.
+          let logo = null;
+          if (brand) {
+            const r = brand.getBoundingClientRect();
+            const wcy = r.top + r.height / 2 + window.scrollY;
+            const lj = Math.max(1, Math.min(rows - 1, Math.floor((wcy - originY) / cellY)));
+            const cA = Math.max(0, Math.min(cols - 1, Math.floor((r.left + window.scrollX - originX) / cell)));
+            const cB = Math.min(cols, Math.max(cA + 1, Math.ceil((r.right + window.scrollX - originX) / cell)));
+            const fj = (n) => {
+              const s = Math.sin(n * 12.9898 + 4.13) * 43758.5453;
+              return ((s - Math.floor(s)) - 0.5) * jit * 1.5;
+            };
+            for (let c = cA; c <= cB; c++) {
+              P[c][lj] = [originX + c * cell + fj(c), (lj - 1) * cellY + fj(c + 50)];
+              P[c][lj + 1] = [originX + c * cell + fj(c + 100), lj * cellY + fj(c + 150)];
+            }
+            logo = { cA, cB, lj };
+          }
+
           quads = [];
           while (cellsG.firstChild) cellsG.removeChild(cellsG.firstChild);
           const frag = document.createDocumentFragment();
@@ -197,39 +222,26 @@
             }
           }
 
-          // Permanent logo shape: a fixed quad pinned around the top-left
-          // wordmark, drawn as an opaque --bg mask + the band's red on top, so
-          // it reads as the band colour, clean, with no divider. Its geometry
-          // comes only from the (corner-pinned) wordmark box — never from the
-          // jittered mesh — so this one shape stays put on every load while the
-          // rest of the mesh reshuffles around it. The wordmark sits centred in
-          // it; small fixed offsets keep it from being a dead-straight box.
-          if (brand) {
-            const r = brand.getBoundingClientRect();
-            const px = 16;
-            const py = 10;
-            const L = r.left + window.scrollX;
-            const R = r.right + window.scrollX;
-            const T = r.top + window.scrollY;
-            const B = r.bottom + window.scrollY;
-            const pts = [
-              [L - px - 4, T - py + 3],
-              [R + px + 6, T - py - 2],
-              [R + px + 2, B + py + 4],
-              [L - px - 7, B + py - 3],
-            ]
-              .map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`)
-              .join(' ');
-            const mask = document.createElementNS(NS, 'polygon');
-            mask.setAttribute('points', pts);
-            mask.style.fill = 'var(--bg)';
-            mask.style.fillOpacity = '1';
-            mask.style.stroke = 'none';
-            const fill = document.createElementNS(NS, 'polygon');
-            fill.setAttribute('points', pts);
-            fill.style.fillOpacity = String(MAXO);
-            cellsG.appendChild(mask);
-            cellsG.appendChild(fill);
+          // Merge the pinned logo cells into one shape (drop their individual
+          // polygons so there's no divider through the text). The outline uses
+          // the fixed boundary points, so the shape is permanent AND tiles with
+          // the surrounding cells — they share these exact points, so no gap and
+          // no overlap. Lit at the band opacity like the rest of the row.
+          if (logo) {
+            const { cA, cB, lj } = logo;
+            for (let c = cA; c < cB; c++) {
+              if (quads[c] && quads[c][lj]) cellsG.removeChild(quads[c][lj].el);
+            }
+            const outline = [];
+            for (let c = cA; c <= cB; c++) outline.push(P[c][lj]); // top edge L→R
+            for (let c = cB; c >= cA; c--) outline.push(P[c][lj + 1]); // bottom edge R→L
+            const merged = document.createElementNS(NS, 'polygon');
+            merged.setAttribute(
+              'points',
+              outline.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' '),
+            );
+            merged.style.fillOpacity = String(MAXO);
+            cellsG.appendChild(merged);
           }
         };
 
