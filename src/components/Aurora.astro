@@ -45,7 +45,7 @@
     overflow: hidden;
     pointer-events: none;
     z-index: 0;
-    --cell: 92px;
+    --cell: 78px;
   }
 
   /* Static ambient wash — a refined, directional grayscale gradient in the
@@ -172,12 +172,13 @@
             const bcx = r.left + r.width / 2 + window.scrollX;
             const bcy = r.top + r.height / 2 + window.scrollY;
             const padX = 5;
-            const padY = 3;
             const shapeL = bcx - (r.width / 2 + padX);
             const shapeR = bcx + (r.width / 2 + padX);
-            const yTop = bcy - (r.height / 2 + padY);
-            const yBot = bcy + (r.height / 2 + padY);
             const lj = Math.max(1, Math.min(rows - 1, Math.floor((bcy - originY) / cellY)));
+            // Full band-row height, so the logo cell is the same size as the
+            // band around it (they match) — the wordmark sits on it.
+            const yTop = (lj - 1) * cellY;
+            const yBot = lj * cellY;
             const cA = Math.max(0, Math.min(cols - 1, Math.floor((shapeL - originX) / cell)));
             const cB = Math.min(cols, Math.max(cA + 1, Math.ceil((shapeR - originX) / cell)));
             const span = cB - cA;
@@ -187,15 +188,14 @@
               return (s - Math.floor(s)) * 2 - 1;
             };
             for (let c = cA; c <= cB; c++) {
-              // Displace each boundary vertex by a real (but fixed) random amount
-              // the way the mesh cells do — but only OUTWARD so the wordmark
-              // stays inside: end columns push left/right, tops push up, bottoms
-              // push down. Result is a natural, irregular polygon, not a box.
+              // Ends push outward (so the wordmark stays inside); the top and
+              // bottom edges jitter like the real mesh cells (signed) so the
+              // shape is a natural irregular polygon that matches its neighbours.
               const baseX = shapeL + ((shapeR - shapeL) * (c - cA)) / span;
-              const push = (n) =>
-                c === cA ? -Math.abs(fs(n)) * jit * 0.7 : c === cB ? Math.abs(fs(n)) * jit * 0.7 : fs(n) * jit * 0.4;
-              P[c][lj] = [baseX + push(c), yTop - Math.abs(fs(c + 50)) * jit * 0.6];
-              P[c][lj + 1] = [baseX + push(c + 9), yBot + Math.abs(fs(c + 150)) * jit * 0.6];
+              const sideX = (n) =>
+                c === cA ? -Math.abs(fs(n)) * jit * 0.6 : c === cB ? Math.abs(fs(n)) * jit * 0.6 : fs(n) * jit * 0.35;
+              P[c][lj] = [baseX + sideX(c), yTop + fs(c + 50) * jit * 0.5];
+              P[c][lj + 1] = [baseX + sideX(c + 9), yBot + fs(c + 150) * jit * 0.5];
             }
             logo = { cA, cB, lj };
           }
