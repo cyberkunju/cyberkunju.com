@@ -3,9 +3,11 @@
  * Aurora — living ambient background:
  *   0. a grayscale gradient wash + an irregular quadrilateral tessellation
  *      (jittered SVG quad mesh) that scrolls with the page and reshuffles its
- *      shapes on every load. Tiles are transparent — only the faint strokes
- *      show. The top-left wordmark is centred on a chosen top-left tile. Behind
- *      content (pointer-events:none).
+ *      shapes on every load. A single subtle red fade rises from the top and
+ *      bottom edges (per-tile opacity by distance to the edge, one falloff),
+ *      with tiny slivers on the left/right — recomputed each build so it
+ *      survives the reshuffle. The top-left wordmark is centred on a chosen
+ *      top-left tile. Behind content (pointer-events:none).
  *   2. a real cursive "cyberkunju" signature (Sacramento script, traced as a
  *      single stroke via stroke-dashoffset) — slowly penned, faint, then it
  *      fades and re-signs at a new random spot. Not a wipe reveal. The stroke
@@ -249,6 +251,38 @@ const sigPath =
             }
           }
           cellsG.appendChild(frag);
+
+          // A single, subtle red fade in from the top and bottom edges: one
+          // linear falloff of per-tile opacity by the centroid's distance to
+          // the nearer horizontal edge — no solid core, no second tier. The
+          // left/right edges only pick up tiles that are almost fully clipped
+          // (tiny slivers). Recomputed each build, so it survives the reshuffle.
+          const BAND = cell * 1.5; // depth of the top/bottom fade
+          const MAXO = 0.4; // opacity right at the edge
+          const SIDE = 0.15; // side tile lights only if < 15% of it is visible
+          for (let i = 0; i < cols; i++) {
+            for (let j = 0; j < rows; j++) {
+              const q = quads[i][j];
+              const [pa, pb, pc, pd] = q.p;
+              const minX = Math.min(pa[0], pb[0], pc[0], pd[0]);
+              const maxX = Math.max(pa[0], pb[0], pc[0], pd[0]);
+              const w = maxX - minX;
+              const cy = (pa[1] + pb[1] + pc[1] + pd[1]) / 4;
+
+              const dV = Math.min(cy, docH - cy);
+              let o = dV < BAND ? MAXO * (1 - dV / BAND) : 0;
+              if (o > MAXO) o = MAXO; // clamp overflow tiles above the edge
+
+              if (
+                (minX < 0 && maxX > 0 && maxX / w < SIDE) ||
+                (minX < vw && maxX > vw && (vw - minX) / w < SIDE)
+              ) {
+                o = Math.max(o, MAXO);
+              }
+
+              if (o > 0.01) q.el.style.fillOpacity = o.toFixed(3);
+            }
+          }
 
           // Centre the wordmark on a comfortable top-left tile.
           const anchor = [110, 56];
