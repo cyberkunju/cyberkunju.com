@@ -160,38 +160,58 @@ main {
 
 .brand {
   display: inline-block;
-  /* Monospace, uppercase, lightly tracked → a crisp, professional wordmark
-     (fits the "cyberkunju" handle better than the display face). */
-  font-family: var(--font-mono);
-  font-size: var(--step-1);
-  font-weight: 700;
+  /* Wordmark treatment dialed in via the Brand Lab (/design/brand-lab):
+     white Pally 900 caps with a short black 3D extrude toward the lower-right,
+     a dark emboss + hairline stroke for depth, and a slow white sheen that
+     sweeps across the letters. The fill is a solid white base layer; the sheen
+     rides on top (first background layer = on top) and is what the animation
+     drives. */
+  font-family: var(--font-sans);
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.05em;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  /* Black-glass wordmark lit by the red aurora. Instead of a neutral black that
-     reads dead on the red band, the letters behave like polished black glass
-     sitting in the site's red light: a hot rose specular catches the top edge,
-     the body stays pitch black, and a warm ember tone bounces at the baseline —
-     all drawn from the accent palette so the mark belongs to the band. */
-  background: linear-gradient(
-    180deg,
-    var(--acc-3) 0%,
-    #3a100c 8%,
-    #060203 30%,
-    #000 55%,
-    #000 80%,
-    #2a0c08 100%
-  );
+  -webkit-text-stroke: 0.6px rgba(13, 13, 12, 0.45);
+  background:
+    linear-gradient(165deg, transparent 33.5%, rgba(255, 255, 255, 0.24) 50%, transparent 66.5%),
+    #ffffff;
+  background-size:
+    260% 100%,
+    100% 100%;
+  background-repeat: no-repeat;
+  background-position:
+    160% 0,
+    0 0;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   color: transparent;
-  /* Emboss + aurora glow: a warm rose rim on the top edge, a soft dark drop for
-     raised depth, and a low red halo that makes the letters read as embedded in
-     and backlit by the band. Sub-pixel blur rounds the sharp monospace corners.
-     Glow colours come from the accent tokens so light/dark themes stay matched. */
-  filter: blur(0.3px) drop-shadow(0 -0.5px 0.4px color-mix(in srgb, var(--acc-3) 60%, transparent))
-    drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.7))
-    drop-shadow(0 0 7px color-mix(in srgb, var(--accent) 32%, transparent));
+  filter: drop-shadow(1.04px 0.36px 0 rgba(0, 0, 0, 0.5))
+    drop-shadow(2.08px 0.72px 0 rgba(0, 0, 0, 0.4)) drop-shadow(3.12px 1.07px 0 rgba(0, 0, 0, 0.3))
+    drop-shadow(4.16px 1.43px 0 rgba(0, 0, 0, 0.2)) drop-shadow(0 -0.5px 0.4px rgba(0, 0, 0, 0.5))
+    drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.7));
+  animation: brand-sheen 9s linear infinite;
+}
+@keyframes brand-sheen {
+  from {
+    background-position:
+      160% 0,
+      0 0;
+  }
+  to {
+    background-position:
+      -60% 0,
+      0 0;
+  }
+}
+/* Freeze the sheen for users who prefer reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  .brand {
+    animation: none;
+    background-position:
+      50% 0,
+      0 0;
+  }
 }
 
 .site-footer__inner {
