@@ -170,16 +170,18 @@ main {
   /* Glossy pitch-black wordmark. The body is essentially flat black (only a
      hair of curve so it reads like a solid glossy surface, not gray), and a
      soft wide specular reflection drifts slowly across like light on a piano
-     lid. Both layers are clipped to the text. */
+     lid. Both layers are clipped to the text. NOTE: in the `background`
+     shorthand the FIRST layer paints on top, so the sheen must be listed
+     first — otherwise the opaque black body hides it and it never shows. */
   background:
-    linear-gradient(180deg, #0d0d11 0%, #000 24%, #000 100%),
-    linear-gradient(100deg, transparent 34%, rgba(255, 255, 255, 0.5) 50%, transparent 66%);
+    linear-gradient(100deg, transparent 34%, rgba(255, 255, 255, 0.5) 50%, transparent 66%),
+    linear-gradient(180deg, #0d0d11 0%, #000 24%, #000 100%);
   background-size:
-    100% 100%,
-    260% 100%;
+    260% 100%,
+    100% 100%;
   background-position:
-    0 0,
-    var(--sheen) 0;
+    var(--sheen) 0,
+    0 0;
   background-repeat: no-repeat;
   -webkit-background-clip: text;
   background-clip: text;
