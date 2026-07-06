@@ -1,17 +1,18 @@
 ---
 /**
  * Aurora — living ambient background:
- *   0. a grayscale gradient wash + an irregular quadrilateral tessellation
- *      (jittered SVG quad mesh) that scrolls with the page. It reshuffles its
- *      shapes on every load. A red frame is recomputed each build so it
- *      persists across the reshuffle: a single flat red band hugs the top and
- *      bottom edges only (one grid-row deep; both edges are grid-aligned so the
- *      band is even). The mesh cell under the corner "cyberkunju" wordmark has
- *      its boundary points pinned to fixed positions, so that merged cell is
- *      the same shape every load (and still tiles with its neighbours) while
- *      the rest of the mesh reshuffles; the white wordmark sits in it. Behind
- *      content (pointer-events:none).
- *   1. filmic grain
+ *   0. a grayscale gradient wash + a faceted triangular tessellation (a
+ *      jittered grid split into triangles, each facet flat-shaded its own
+ *      near-black charcoal) that scrolls with the page. It reshuffles its
+ *      shapes on every load. A red band is recomputed each build so it
+ *      persists across the reshuffle: ruby facets hug the top and bottom
+ *      edges, falling from bright crimson at the edge through deep blood-red
+ *      into the charcoal with a jagged, organic frontier. The mesh cell under
+ *      the corner "cyberkunju" wordmark has its boundary points pinned to
+ *      fixed positions, so that merged cell is the same shape every load (and
+ *      still tiles with its neighbours) while the rest of the mesh reshuffles;
+ *      the wordmark sits in it. Behind content (pointer-events:none).
+ *   1. filmic grain (above the facets — they're opaque)
  *
  * Fixed, site-wide, behind content.
  */
@@ -19,24 +20,19 @@
 
 <div class="aurora" aria-hidden="true">
   <span class="aurora__wash"></span>
-
-  <span class="aurora__grain"></span>
 </div>
 
 <!-- Scrolls with the page: a fixed viewport clip holding a full-document-tall
      tessellation that JS translates by -scrollY. -->
 <div class="aurora-scroll" aria-hidden="true">
   <svg class="aurora__tess" preserveAspectRatio="none">
-    <defs>
-      <linearGradient id="tessPop" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#c1121f" />
-        <stop offset="0.5" stop-color="#ff4d3a" />
-        <stop offset="1" stop-color="#ff6a4a" />
-      </linearGradient>
-    </defs>
     <g class="aurora__cells"></g>
   </svg>
 </div>
+
+<!-- Grain sits above the opaque facets (its own fixed layer, after the mesh in
+     DOM order) but below the page content (main is position:relative z-1). -->
+<div class="aurora-grain" aria-hidden="true"></div>
 
 <style>
   .aurora {
@@ -45,7 +41,7 @@
     overflow: hidden;
     pointer-events: none;
     z-index: 0;
-    --cell: 78px;
+    --cell: 150px;
   }
 
   /* Static ambient wash — a refined, directional grayscale gradient in the
@@ -60,9 +56,9 @@
       radial-gradient(70% 70% at 100% 45%, rgba(var(--aurora-tint), 0.035), transparent 60%);
   }
 
-  /* Irregular quadrilateral tessellation — a jittered quad mesh (4 tiles around
-     each vertex) built as SVG polygons by JS. Faint strokes draw the tiling;
-     the tile under the cursor pops in the red accent. Softly vignetted. */
+  /* Faceted triangular tessellation — a jittered grid split into triangles,
+     built as SVG polygons by JS. Each facet is flat-shaded (inline fill) like
+     a softly lit low-poly surface; faint strokes web the facets together. */
   .aurora-scroll {
     position: fixed;
     inset: 0;
@@ -81,29 +77,26 @@
      JS and don't carry Astro's scoped-style attribute, so scoped rules miss
      them (which left them at the SVG default black fill → a black page). */
 
-  .aurora__grain {
-    position: absolute;
+  .aurora-grain {
+    position: fixed;
     inset: 0;
+    pointer-events: none;
+    z-index: 0;
     opacity: 0.05;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
-
 </style>
 
 <style is:global>
-  /* Tessellation tiles are created in JS, so they don't get Astro's scoped
+  /* Tessellation facets are created in JS, so they don't get Astro's scoped
      attribute — their styles must be global. Scoped by .aurora__tess so they
-     don't leak. Default (no hover) tiles are transparent; only strokes show. */
+     don't leak. Each facet's flat shade is set inline per polygon by the
+     build; only the shared stroke lives here. */
   .aurora__tess polygon {
-    fill: url(#tessPop) #ff4d3a;
-    fill-opacity: 0;
-    stroke: rgba(var(--aurora-tint), 0.15);
+    stroke: rgba(var(--aurora-tint), 0.1);
     stroke-width: 1;
-    transition: fill-opacity 340ms ease;
+    stroke-linejoin: round;
   }
-  /* The red top/bottom band is painted per tile via inline fill-opacity in JS,
-     so no class rule is needed here — the base rule above supplies the fill and
-     the fade transition. */
 </style>
 
 <script is:inline>
@@ -157,6 +150,7 @@
               P[i][j] = [
                 originX + i * cell + rand(-jit, jit),
                 originY + j * cellY + rand(-jit, jit),
+                rand(-1, 1) * cell * 0.4, // z relief for facet lighting
               ];
             }
           }
@@ -195,15 +189,111 @@
               const baseX = shapeL + ((shapeR - shapeL) * (c - cA)) / span;
               const sideX = (n) =>
                 c === cA ? -Math.abs(fs(n)) * jit * 0.6 : c === cB ? Math.abs(fs(n)) * jit * 0.6 : fs(n) * jit * 0.35;
-              P[c][lj] = [baseX + sideX(c), yTop + fs(c + 50) * jit * 0.5];
-              P[c][lj + 1] = [baseX + sideX(c + 9), yBot + fs(c + 150) * jit * 0.5];
+              P[c][lj] = [baseX + sideX(c), yTop + fs(c + 50) * jit * 0.5, fs(c + 250) * cell * 0.4];
+              P[c][lj + 1] = [baseX + sideX(c + 9), yBot + fs(c + 150) * jit * 0.5, fs(c + 350) * cell * 0.4];
             }
             logo = { cA, cB, lj, cx: bcx, cy: bcy };
           }
 
+          // --- Facet shading (low-poly relief) ---
+          // Every grid point carries a z; each triangle's flat shade is a
+          // single Lambert term against one fixed light, so the whole mesh
+          // reads as one softly lit faceted surface.
+          const LX = -0.38;
+          const LY = -0.55;
+          const LZ = 0.85;
+          const LLEN = Math.hypot(LX, LY, LZ);
+          const shadeOf = (a, b, c) => {
+            const ux = b[0] - a[0];
+            const uy = b[1] - a[1];
+            const uz = (b[2] || 0) - (a[2] || 0);
+            const vx = c[0] - a[0];
+            const vy = c[1] - a[1];
+            const vz = (c[2] || 0) - (a[2] || 0);
+            let nx = uy * vz - uz * vy;
+            let ny = uz * vx - ux * vz;
+            let nz = ux * vy - uy * vx;
+            if (nz < 0) {
+              nx = -nx;
+              ny = -ny;
+              nz = -nz;
+            }
+            const nl = Math.hypot(nx, ny, nz) || 1;
+            const d = (nx * LX + ny * LY + nz * LZ) / (nl * LLEN);
+            // a flat facet gives d ≈ LZ/|L|; spread the deviation into [-1, 1]
+            return Math.max(-1, Math.min(1, (d - LZ / LLEN) * 3.2));
+          };
+
+          // Charcoal facets: a subtle light/dark veil over the page ink, so
+          // the relief adapts to whichever theme sits underneath.
+          const charcoalFill = (s) =>
+            s >= 0
+              ? `rgba(244, 246, 252, ${(s * 0.035).toFixed(3)})`
+              : `rgba(0, 0, 4, ${(-s * 0.22).toFixed(3)})`;
+
+          // Ruby facets: bright crimson at the page edge → deep blood-red →
+          // swallowed by the page ink, modulated by the facet's Lambert term.
+          // In the light theme the band keeps its brick hue and melts into the
+          // paper via alpha instead of darkening to black (the dark heading
+          // must stay readable on a light page).
+          const dark = (() => {
+            const t = getComputedStyle(document.documentElement)
+              .getPropertyValue('--aurora-tint')
+              .trim();
+            return parseInt(t, 10) > 127; // light strokes ⇒ dark theme
+          })();
+          const mix = (a, b, t) => a + (b - a) * t;
+          const redFill = (nd, s) => {
+            const f = 1 + s * 0.22;
+            if (!dark) {
+              const t = Math.min(nd / 0.6, 1);
+              const r = mix(178, 128, t);
+              const g = mix(52, 30, t);
+              const bl = mix(42, 27, t);
+              const a = nd < 0.45 ? 1 : Math.max(0, 1 - (nd - 0.45) / 0.55);
+              return `rgba(${Math.round(r * f)}, ${Math.round(g * f)}, ${Math.round(bl * f)}, ${a.toFixed(3)})`;
+            }
+            let r;
+            let g;
+            let bl;
+            if (nd < 0.62) {
+              const t = nd / 0.62;
+              r = mix(150, 82, t);
+              g = mix(44, 22, t);
+              bl = mix(36, 20, t);
+            } else {
+              const t = (nd - 0.62) / 0.38;
+              r = mix(82, 18, t);
+              g = mix(22, 12, t);
+              bl = mix(20, 13, t);
+            }
+            return `rgb(${Math.round(r * f)}, ${Math.round(g * f)}, ${Math.round(bl * f)})`;
+          };
+
+          const BAND = cellY * 1.5; // ruby band depth from the top/bottom edges
+
           quads = [];
           while (cellsG.firstChild) cellsG.removeChild(cellsG.firstChild);
           const frag = document.createDocumentFragment();
+          const makeTri = (a, b, c) => {
+            const poly = document.createElementNS(NS, 'polygon');
+            poly.setAttribute(
+              'points',
+              `${a[0].toFixed(1)},${a[1].toFixed(1)} ${b[0].toFixed(1)},${b[1].toFixed(1)} ${c[0].toFixed(1)},${c[1].toFixed(1)}`,
+            );
+            const cy = (a[1] + b[1] + c[1]) / 3;
+            const depth = Math.min(cy, docH - cy);
+            const s = shadeOf(a, b, c);
+            // jittered frontier: each facet decides how deep the ruby reaches,
+            // so the band dissolves into the charcoal on a jagged, organic edge
+            const reach = BAND * (0.78 + 0.44 * Math.random());
+            poly.setAttribute(
+              'fill',
+              depth < reach ? redFill(Math.min(depth / BAND, 1), s) : charcoalFill(s),
+            );
+            frag.appendChild(poly);
+            return poly;
+          };
           for (let i = 0; i < cols; i++) {
             quads[i] = [];
             for (let j = 0; j < rows; j++) {
@@ -211,55 +301,32 @@
               const b = P[i + 1][j];
               const c = P[i + 1][j + 1];
               const d = P[i][j + 1];
-              const poly = document.createElementNS(NS, 'polygon');
-              poly.setAttribute(
-                'points',
-                `${a[0].toFixed(1)},${a[1].toFixed(1)} ${b[0].toFixed(1)},${b[1].toFixed(1)} ${c[0].toFixed(1)},${c[1].toFixed(1)} ${d[0].toFixed(1)},${d[1].toFixed(1)}`,
-              );
-              quads[i][j] = { p: [a, b, c, d], el: poly };
-              frag.appendChild(poly);
+              // split each cell on a random diagonal → varied triangulation
+              const els =
+                Math.random() < 0.5
+                  ? [makeTri(a, b, c), makeTri(a, c, d)]
+                  : [makeTri(a, b, d), makeTri(b, c, d)];
+              quads[i][j] = { els };
             }
           }
           cellsG.appendChild(frag);
 
-          // One flat red band on the top and bottom edges only — no gradient
-          // falloff, no side frame. A tile lights at a single opacity when its
-          // centroid is within DEPTH (one grid-row) of the nearer horizontal
-          // edge. Both edges are grid-aligned, so the band is an even row.
-          // Opacity is inline per tile; the mesh is rebuilt from scratch each
-          // time, so it survives the per-load reshuffle.
-          const DEPTH = cellY; // one full tile-row; both edges are grid-aligned
-          const MAXO = 0.5; // band opacity
-          for (let i = 0; i < cols; i++) {
-            for (let j = 0; j < rows; j++) {
-              const q = quads[i][j];
-              const [pa, pb, pc, pd] = q.p;
-              const cy = (pa[1] + pb[1] + pc[1] + pd[1]) / 4;
-              if (Math.min(cy, docH - cy) < DEPTH) q.el.style.fillOpacity = String(MAXO);
-            }
-          }
-
-          // Merge the pinned logo cells into one shape (drop their individual
-          // polygons so there's no divider through the text). The outline uses
-          // the fixed boundary points, so the shape is permanent AND tiles with
-          // the surrounding cells — they share these exact points, so no gap and
-          // no overlap. Lit at the band opacity like the rest of the row.
+          // Merge the pinned logo cells into one ruby facet (drop their
+          // individual triangles so there's no divider through the text). The
+          // outline uses the fixed boundary points, so the shape is permanent
+          // AND tiles with the surrounding cells — they share these exact
+          // points, so no gap and no overlap.
           if (logo) {
             const { cA, cB, lj } = logo;
             for (let c = cA; c < cB; c++) {
-              if (quads[c] && quads[c][lj]) cellsG.removeChild(quads[c][lj].el);
+              if (quads[c] && quads[c][lj]) {
+                for (const el of quads[c][lj].els) cellsG.removeChild(el);
+              }
             }
             const outline = [];
             for (let c = cA; c <= cB; c++) outline.push(P[c][lj]); // top edge L→R
             for (let c = cB; c >= cA; c--) outline.push(P[c][lj + 1]); // bottom edge R→L
-            const merged = document.createElementNS(NS, 'polygon');
-            merged.setAttribute(
-              'points',
-              outline.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' '),
-            );
-            merged.style.fillOpacity = String(MAXO);
-            cellsG.appendChild(merged);
-            // Centre the wordmark on the shape's centroid (both axes).
+            // Centre of the shape — for its ruby shade and the wordmark nudge.
             let sx = 0;
             let sy = 0;
             for (let k = 0; k < outline.length; k++) {
@@ -268,6 +335,17 @@
             }
             sx /= outline.length;
             sy /= outline.length;
+            const merged = document.createElementNS(NS, 'polygon');
+            merged.setAttribute(
+              'points',
+              outline.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' '),
+            );
+            merged.setAttribute(
+              'fill',
+              redFill(Math.min(Math.min(sy, docH - sy) / BAND, 1), 0.18),
+            );
+            cellsG.appendChild(merged);
+            // Centre the wordmark on the shape's centroid (both axes).
             const nudgeX = 8; // shift the wordmark slightly left of the centroid
             brand.style.transform = `translate(${(sx - logo.cx - nudgeX).toFixed(1)}px, ${(sy - logo.cy).toFixed(1)}px)`;
           }
@@ -308,6 +386,11 @@
           }, 250);
         };
         window.addEventListener('resize', rebuild);
+        // Repaint the facets when the colour scheme flips (the ruby ramp and
+        // charcoal veils are theme-aware).
+        if (window.matchMedia) {
+          window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', rebuild);
+        }
         if ('ResizeObserver' in window) {
           new ResizeObserver(rebuild).observe(document.body);
         }
