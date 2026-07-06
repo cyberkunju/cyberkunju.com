@@ -17,8 +17,6 @@
   --font-mono:
     ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", "Fira Code", Menlo, Consolas,
     monospace;
-  /* Display face for the wordmark — techno/sci-fi. */
-  --font-display: "Oxanium", var(--font-sans);
 
   --step--1: clamp(0.83rem, 0.8rem + 0.15vw, 0.9rem);
   --step-0: clamp(1rem, 0.96rem + 0.2vw, 1.125rem);
