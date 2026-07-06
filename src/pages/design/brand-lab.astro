@@ -18,19 +18,12 @@
     <div id="app">
       <section id="stage" aria-label="Preview">
         <div id="stageInner">
-          <span id="preview">CYBERKUNJU</span>
+          <iframe id="frame" src="/" title="Live site preview"></iframe>
         </div>
         <div id="stageBar">
-          <label>Backdrop
-            <select data-k="backdrop">
-              <option value="aurora">Aurora red band</option>
-              <option value="dark">Dark</option>
-              <option value="light">Light</option>
-              <option value="custom">Custom</option>
-            </select>
-          </label>
-          <label>Custom <input type="color" data-k="backdropColor" /></label>
-          <label>Zoom <input type="range" data-k="zoom" min="0.5" max="3" step="0.1" /></label>
+          <span class="hint">Live homepage — tweaks apply to the real wordmark on the real top bar &amp; shape.</span>
+          <label>Zoom <input type="range" data-k="zoom" min="1" max="4" step="0.1" /></label>
+          <button id="reloadFrame" type="button">Reload</button>
         </div>
       </section>
       <aside id="panel">
@@ -74,21 +67,18 @@
       }
       #stageInner {
         flex: 1;
-        display: grid;
-        place-items: center;
-        overflow: auto;
-        --band: linear-gradient(180deg, #b4483c 0%, #8f3227 55%, #521a14 100%);
-        background: var(--band);
+        overflow: hidden;
+        background: #000;
       }
-      #preview {
-        display: inline-block;
-        font-size: 44px;
-        font-weight: 700;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        white-space: nowrap;
-        transform: scale(var(--zoom, 1));
+      #frame {
+        display: block;
+        width: 100%;
+        height: 100%;
+        border: 0;
+        background: #000;
+        transform-origin: top left;
       }
+      #stageBar .hint { color: #7a7a82; margin-right: auto; }
       #stageBar {
         display: flex;
         gap: 16px;
@@ -233,7 +223,6 @@
 
       let cfg = load();
       const $ = (s) => document.querySelector(s);
-      const preview = $("#preview");
 
       function load() {
         try {
@@ -333,22 +322,40 @@
         return d;
       }
 
-      function apply() {
+      function buildCSS() {
         const d = compute();
-        preview.style.cssText = d.join("; ") + ";";
-        preview.style.transform = `scale(${cfg.zoom})`;
-        preview.textContent = cfg.text;
-
-        const si = document.getElementById("stageInner");
-        si.style.background =
-          cfg.backdrop === "aurora" ? "linear-gradient(180deg, #b4483c 0%, #8f3227 55%, #521a14 100%)"
-          : cfg.backdrop === "dark" ? "#0a0a0a"
-          : cfg.backdrop === "light" ? "#f2f2f2"
-          : cfg.backdropColor;
-
+        // Override the site's .brand text content too, in case they change it.
         let css = ".brand {\n  " + d.join(";\n  ") + ";\n}";
         if (cfg.sheenOn) css += "\n\n@keyframes brandlabSheen {\n  from { background-position: 160% 0, 0 0; }\n  to { background-position: -60% 0, 0 0; }\n}";
+        return css;
+      }
+
+      function injectFrame(css) {
+        const fr = document.getElementById("frame");
+        if (!fr) return;
+        let doc;
+        try { doc = fr.contentDocument || (fr.contentWindow && fr.contentWindow.document); } catch { doc = null; }
+        if (!doc || !doc.head) return;
+        let st = doc.getElementById("brandlab-override");
+        if (!st) { st = doc.createElement("style"); st.id = "brandlab-override"; doc.head.appendChild(st); }
+        st.textContent = css;
+        const b = doc.querySelector(".brand");
+        if (b && cfg.text && b.textContent !== cfg.text) b.textContent = cfg.text;
+      }
+
+      function setZoom() {
+        const fr = document.getElementById("frame");
+        const z = cfg.zoom || 1;
+        fr.style.width = 100 / z + "%";
+        fr.style.height = 100 / z + "%";
+        fr.style.transform = `scale(${z})`;
+      }
+
+      function apply() {
+        const css = buildCSS();
         document.getElementById("css").value = css;
+        injectFrame(css);
+        setZoom();
         save();
       }
 
@@ -452,6 +459,13 @@
       document.getElementById("reset").addEventListener("click", () => {
         cfg = structuredClone(DEFAULTS);
         buildControls(); apply();
+      });
+
+      // Re-inject on every (re)load of the framed site, e.g. after in-frame nav.
+      const frame = document.getElementById("frame");
+      frame.addEventListener("load", () => { injectFrame(buildCSS()); setZoom(); });
+      document.getElementById("reloadFrame").addEventListener("click", () => {
+        try { frame.contentWindow.location.reload(); } catch { frame.src = frame.src; }
       });
 
       buildControls();
