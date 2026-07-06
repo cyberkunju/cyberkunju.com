@@ -134,22 +134,31 @@
           svg.style.height = docH + 'px';
           svg.setAttribute('viewBox', `0 0 ${vw} ${docH}`);
           cols = Math.ceil((vw + 2 * cell) / cell);
-          // Make the vertical tiling commensurate with the page height so BOTH
-          // y=0 and y=docH land on grid lines: rowsN rows of cellY (≈ cell)
-          // that divide docH exactly, plus one overflow row past each edge.
-          // y=0 being grid-aligned is why the top band is clean; aligning the
-          // bottom the same way fixes the ragged tongues there.
-          const rowsN = Math.max(1, Math.round(docH / cell));
-          const cellY = docH / rowsN;
-          const originY = -cellY;
-          rows = rowsN + 2;
+          // Explicit row boundaries so the top/bottom ruby bars have a fixed,
+          // conventional top-bar height (BAR) with grid lines exactly at y=0,
+          // BAR, docH-BAR and docH; the interior divides evenly into ≈ cell-
+          // tall rows. One shallow overflow row sits past each edge.
+          const BAR = 74; // the red top/bottom bar height
+          const innerH = Math.max(cell, docH - 2 * BAR);
+          const innerN = Math.max(1, Math.round(innerH / cell));
+          const innerY = innerH / innerN;
+          const Ys = [-innerY * 0.5, 0, BAR];
+          for (let k = 1; k <= innerN; k++) Ys.push(BAR + k * innerY);
+          Ys.push(docH, docH + innerY * 0.5);
+          rows = Ys.length - 1;
+          // vertical jitter shrinks near thin rows so the bar edges stay crisp
+          const jyFor = (j) => {
+            const above = j > 0 ? Ys[j] - Ys[j - 1] : innerY;
+            const below = j < Ys.length - 1 ? Ys[j + 1] - Ys[j] : innerY;
+            return Math.min(jit, Math.min(above, below) * 0.3);
+          };
           const P = [];
           for (let i = 0; i <= cols; i++) {
             P[i] = [];
-            for (let j = 0; j <= rows; j++) {
+            for (let j = 0; j < Ys.length; j++) {
               P[i][j] = [
                 originX + i * cell + rand(-jit, jit),
-                originY + j * cellY + rand(-jit, jit),
+                Ys[j] + rand(-1, 1) * jyFor(j),
                 rand(-1, 1) * cell * 0.4, // z relief for facet lighting
               ];
             }
@@ -169,11 +178,12 @@
             const padX = 5;
             const shapeL = bcx - (r.width / 2 + padX);
             const shapeR = bcx + (r.width / 2 + padX);
-            const lj = Math.max(1, Math.min(rows - 1, Math.floor((bcy - originY) / cellY)));
-            // Full band-row height, so the logo cell is the same size as the
-            // band around it (they match) — the wordmark sits on it.
-            const yTop = (lj - 1) * cellY;
-            const yBot = lj * cellY;
+            let lj = 1;
+            while (lj < rows - 1 && Ys[lj + 1] <= bcy) lj += 1;
+            // The logo cell spans the full bar row, so it matches the bar
+            // around it — the wordmark sits on it.
+            const yTop = Ys[lj];
+            const yBot = Ys[lj + 1];
             const cA = Math.max(0, Math.min(cols - 1, Math.floor((shapeL - originX) / cell)));
             const cB = Math.min(cols, Math.max(cA + 1, Math.ceil((shapeR - originX) / cell)));
             const span = cB - cA;
@@ -189,8 +199,8 @@
               const baseX = shapeL + ((shapeR - shapeL) * (c - cA)) / span;
               const sideX = (n) =>
                 c === cA ? -Math.abs(fs(n)) * jit * 0.6 : c === cB ? Math.abs(fs(n)) * jit * 0.6 : fs(n) * jit * 0.35;
-              P[c][lj] = [baseX + sideX(c), yTop + fs(c + 50) * jit * 0.5, fs(c + 250) * cell * 0.4];
-              P[c][lj + 1] = [baseX + sideX(c + 9), yBot + fs(c + 150) * jit * 0.5, fs(c + 350) * cell * 0.4];
+              P[c][lj] = [baseX + sideX(c), yTop + fs(c + 50) * jyFor(lj), fs(c + 250) * cell * 0.4];
+              P[c][lj + 1] = [baseX + sideX(c + 9), yBot + fs(c + 150) * jyFor(lj + 1), fs(c + 350) * cell * 0.4];
             }
             logo = { cA, cB, lj, cx: bcx, cy: bcy };
           }
@@ -272,8 +282,6 @@
             return `rgb(${Math.round(r * f)}, ${Math.round(g * f)}, ${Math.round(bl * f)})`;
           };
 
-          const BAND = cellY * 0.95; // shallow top/bottom bar of ruby facets
-
           quads = [];
           while (cellsG.firstChild) cellsG.removeChild(cellsG.firstChild);
           const frag = document.createDocumentFragment();
@@ -286,12 +294,14 @@
             const cy = (a[1] + b[1] + c[1]) / 3;
             const depth = Math.min(cy, docH - cy);
             const s = shadeOf(a, b, c);
-            // slightly jittered frontier: the bar's lower edge stays jagged
-            // but tight, so it reads as a bar rather than a spill
-            const reach = BAND * (0.85 + 0.3 * Math.random());
+            // grid-aligned bar: every facet whose centroid falls in the bar
+            // row is ruby; the jittered grid line itself keeps the lower edge
+            // gently jagged. The ramp stays in its deep-brick upper half.
             poly.setAttribute(
               'fill',
-              depth < reach ? redFill(Math.min(depth / BAND, 1), s) : charcoalFill(s),
+              depth < BAR
+                ? redFill(Math.max(Math.min(depth / BAR, 1), 0) * 0.55, s)
+                : charcoalFill(s),
             );
             frag.appendChild(poly);
             return poly;
@@ -344,7 +354,7 @@
             );
             merged.setAttribute(
               'fill',
-              redFill(Math.min(Math.min(sy, docH - sy) / BAND, 1), 0.18),
+              redFill(Math.max(Math.min(Math.min(sy, docH - sy) / BAR, 1), 0) * 0.55, 0.12),
             );
             cellsG.appendChild(merged);
             // Centre the wordmark on the shape's centroid (both axes).

@@ -160,21 +160,20 @@ main {
 
 .brand {
   display: inline-block;
-  /* Wordmark treatment dialed in via the Brand Lab (/design/brand-lab):
-     white Pally 900 caps with a short black 3D extrude toward the lower-right,
-     a dark emboss + hairline stroke for depth, and a slow white sheen that
-     sweeps across the letters. The fill is a solid white base layer; the sheen
-     rides on top (first background layer = on top) and is what the animation
-     drives. */
+  /* Wordmark matched to the ruby bar: Pally 900 caps pressed into the red
+     facet as dark glass — a near-black, red-tinted ink fill, a soft emboss
+     (thin warm light catch below, tight dark halo above) and a slow dim
+     sheen gliding across the gloss. The fill is the base layer; the sheen
+     rides on top (first background layer = on top) and is what the
+     animation drives. */
   font-family: var(--font-sans);
   font-size: 22px;
   font-weight: 900;
   letter-spacing: -0.05em;
   text-transform: uppercase;
-  -webkit-text-stroke: 0.6px rgba(13, 13, 12, 0.45);
   background:
-    linear-gradient(165deg, transparent 33.5%, rgba(255, 255, 255, 0.24) 50%, transparent 66.5%),
-    #ffffff;
+    linear-gradient(165deg, transparent 33.5%, rgba(255, 132, 104, 0.26) 50%, transparent 66.5%),
+    linear-gradient(180deg, #2a1210 0%, #120807 40%, #060303 100%);
   background-size:
     260% 100%,
     100% 100%;
@@ -186,10 +185,8 @@ main {
   background-clip: text;
   -webkit-text-fill-color: transparent;
   color: transparent;
-  filter: drop-shadow(1.04px 0.36px 0 rgba(0, 0, 0, 0.5))
-    drop-shadow(2.08px 0.72px 0 rgba(0, 0, 0, 0.4)) drop-shadow(3.12px 1.07px 0 rgba(0, 0, 0, 0.3))
-    drop-shadow(4.16px 1.43px 0 rgba(0, 0, 0, 0.2)) drop-shadow(0 -0.5px 0.4px rgba(0, 0, 0, 0.5))
-    drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.7));
+  filter: drop-shadow(0 1px 0 rgba(255, 158, 134, 0.22))
+    drop-shadow(0 -1px 0.6px rgba(0, 0, 0, 0.45)) drop-shadow(0 2px 3px rgba(0, 0, 0, 0.35));
   animation: brand-sheen 9s linear infinite;
 }
 @keyframes brand-sheen {
