@@ -22,8 +22,9 @@
   <span class="aurora__wash"></span>
 </div>
 
-<!-- Scrolls with the page: a fixed viewport clip holding a full-document-tall
-     tessellation that JS translates by -scrollY. -->
+<!-- Scrolls with the page natively: the full-document-tall tessellation is
+     absolutely positioned in the document flow (no JS translate — that lagged
+     a frame behind the scroll and made the mesh feel detached). -->
 <div class="aurora-scroll" aria-hidden="true">
   <svg class="aurora__tess" preserveAspectRatio="none">
     <g class="aurora__cells"></g>
@@ -58,11 +59,14 @@
 
   /* Faceted triangular tessellation — a jittered grid split into triangles,
      built as SVG polygons by JS. Each facet is flat-shaded (inline fill) like
-     a softly lit low-poly surface; faint strokes web the facets together. */
+     a softly lit low-poly surface; faint strokes web the facets together.
+     Positioned absolutely at the document top so it scrolls natively with
+     the page — pixel-locked to the content. */
   .aurora-scroll {
-    position: fixed;
-    inset: 0;
-    overflow: hidden;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
     pointer-events: none;
     z-index: 0;
   }
@@ -71,7 +75,6 @@
     top: 0;
     left: 0;
     width: 100%;
-    will-change: transform;
   }
   /* Polygon styles live in the is:global block below — the tiles are created in
      JS and don't carry Astro's scoped-style attribute, so scoped rules miss
@@ -93,8 +96,8 @@
      don't leak. Each facet's flat shade is set inline per polygon by the
      build; only the shared stroke lives here. */
   .aurora__tess polygon {
-    stroke: rgba(var(--aurora-tint), 0.1);
-    stroke-width: 1;
+    stroke: rgba(var(--aurora-tint), 0.05);
+    stroke-width: 0.6;
     stroke-linejoin: round;
   }
 </style>
@@ -106,10 +109,10 @@
     const rand = (min, max) => Math.random() * (max - min) + min;
 
     const start = () => {
-      // Irregular quadrilateral tessellation: a jittered grid of points forms a
-      // quad mesh (4 meet at each vertex). It spans the whole document and is
-      // translated by -scrollY so it scrolls with the page. Tiles within one
-      // row of the top/bottom edge light red (the band); the cell under the
+      // Faceted triangular tessellation: a jittered grid of points, each cell
+      // split into two triangles. It spans the whole document and sits in the
+      // document flow, so it scrolls natively with the page. Facets in the
+      // fixed-height top/bottom bar rows are ruby; the cell under the
       // top-left wordmark is pinned (fixed points) so it stays put and still
       // tiles, while the rest of the mesh reshuffles.
       const aurora = document.querySelector('.aurora');
@@ -238,8 +241,8 @@
           // the relief adapts to whichever theme sits underneath.
           const charcoalFill = (s) =>
             s >= 0
-              ? `rgba(244, 246, 252, ${(s * 0.035).toFixed(3)})`
-              : `rgba(0, 0, 4, ${(-s * 0.22).toFixed(3)})`;
+              ? `rgba(244, 246, 252, ${(s * 0.022).toFixed(3)})`
+              : `rgba(0, 0, 4, ${(-s * 0.13).toFixed(3)})`;
 
           // Ruby facets: bright crimson at the page edge → deep blood-red →
           // swallowed by the page ink, modulated by the facet's Lambert term.
@@ -363,26 +366,7 @@
           }
         };
 
-        const applyScroll = () => {
-          svg.style.transform = `translate3d(0, ${-window.scrollY}px, 0)`;
-        };
-
-        let sraf = false;
-        window.addEventListener(
-          'scroll',
-          () => {
-            if (sraf) return;
-            sraf = true;
-            requestAnimationFrame(() => {
-              sraf = false;
-              applyScroll();
-            });
-          },
-          { passive: true },
-        );
-
         build();
-        applyScroll();
         // Re-carve once webfonts settle (the wordmark's measured size changes).
         if (document.fonts && document.fonts.ready) {
           document.fonts.ready.then(() => rebuild()).catch(() => {});
@@ -394,7 +378,6 @@
           clearTimeout(rt);
           rt = setTimeout(() => {
             build();
-            applyScroll();
           }, 250);
         };
         window.addEventListener('resize', rebuild);
