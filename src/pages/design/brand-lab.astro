@@ -144,6 +144,7 @@
 
     <script is:inline>
       const DEFAULTS = {
+        cellColor: "#ce2a21", cellAlpha: 1, styleWordmark: false,
         text: "CYBERKUNJU", font: "oxanium", size: 44, weight: 700, tracking: 0.08,
         transform: "uppercase", opacity: 1,
         fillMode: "gradient", solid: "#0a0a0a", gradAngle: 180,
@@ -162,7 +163,12 @@
         backdrop: "aurora", backdropColor: "#8f3227", zoom: 1,
       };
       const FIELDS = [
+        ["Logo Cell — poly behind the wordmark", [
+          ["cellColor", "Fill color", "color"],
+          ["cellAlpha", "Fill opacity", "range", { min: 0, max: 1, step: 0.01 }],
+        ]],
         ["Text", [
+          ["styleWordmark", "Style wordmark text (off = image logo)", "check"],
           ["text", "Text", "text"],
           ["font", "Font", "select", { opts: [["oxanium", "Oxanium"], ["chakra", "Chakra Petch"], ["quantico", "Quantico"], ["orbitron", "Orbitron"], ["rajdhani", "Rajdhani"], ["syncopate", "Syncopate"], ["audiowide", "Audiowide"], ["michroma", "Michroma"], ["aldrich", "Aldrich"], ["sans", "Pally"], ["mono", "Mono"], ["serif", "Serif"]] }],
           ["size", "Size", "range", { min: 12, max: 120, step: 1, unit: "px" }],
@@ -344,11 +350,15 @@
       }
 
       function buildCSS() {
+        // The poly behind the logo — always emitted (this is the main knob now).
+        const cell = `:root {\n  --logo-cell-fill: ${hexA(cfg.cellColor, cfg.cellAlpha)};\n}`;
+        // Only restyle the wordmark text when asked (the live site uses an
+        // image logo, so leave it alone by default).
+        if (!cfg.styleWordmark) return cell;
         const d = compute();
-        // Override the site's .brand text content too, in case they change it.
         let css = ".brand {\n  " + d.join(";\n  ") + ";\n}";
         if (cfg.sheenOn) css += "\n\n@keyframes brandlabSheen {\n  from { background-position: 160% 0, 0 0; }\n  to { background-position: -60% 0, 0 0; }\n}";
-        return css;
+        return css + "\n\n" + cell;
       }
 
       function injectFrame(css) {
@@ -360,16 +370,19 @@
         let st = doc.getElementById("brandlab-override");
         if (!st) { st = doc.createElement("style"); st.id = "brandlab-override"; doc.head.appendChild(st); }
         st.textContent = css;
-        // Load the chosen webfont into the framed site so the override renders.
-        const g = GFONT[cfg.font];
-        if (g) {
-          let fl = doc.getElementById("brandlab-font");
-          if (!fl) { fl = doc.createElement("link"); fl.id = "brandlab-font"; fl.rel = "stylesheet"; doc.head.appendChild(fl); }
-          const href = `https://fonts.googleapis.com/css2?family=${g}&display=swap`;
-          if (fl.getAttribute("href") !== href) fl.setAttribute("href", href);
+        // Only touch the wordmark when explicitly styling text — the live site
+        // uses an <img> logo, and setting textContent would wipe it.
+        if (cfg.styleWordmark) {
+          const g = GFONT[cfg.font];
+          if (g) {
+            let fl = doc.getElementById("brandlab-font");
+            if (!fl) { fl = doc.createElement("link"); fl.id = "brandlab-font"; fl.rel = "stylesheet"; doc.head.appendChild(fl); }
+            const href = `https://fonts.googleapis.com/css2?family=${g}&display=swap`;
+            if (fl.getAttribute("href") !== href) fl.setAttribute("href", href);
+          }
+          const b = doc.querySelector(".brand");
+          if (b && cfg.text && b.textContent !== cfg.text) b.textContent = cfg.text;
         }
-        const b = doc.querySelector(".brand");
-        if (b && cfg.text && b.textContent !== cfg.text) b.textContent = cfg.text;
       }
 
       function setZoom() {
