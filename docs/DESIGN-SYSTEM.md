@@ -9,8 +9,8 @@ you'd want to turn.
   bg / near-white ink. The page is monochrome; the *only* color is one accent.
 - **One accent: a red → light-red → rose gradient**, applied as a **living
   "ember" / plasma** (not a flat color, not pink). It appears on: interactive
-  text accents (link hover, `.grad-text`, ghost-button hover), the background
-  tessellation's active tiles, and the cursive signature stroke.
+  text accents (link hover, `.grad-text`, ghost-button hover) and the
+  background tessellation's red top/bottom band (`#tessPop` gradient).
 - **Typeface: Pally** (see `docs/CONFIGURATION.md` §6).
 
 ## 2. Cascade layers
@@ -73,44 +73,74 @@ values, the radial `background` layers, and the `churn-*` keyframe targets in
 
 ## 5. The background — `src/components/Aurora.astro`
 
-`Aurora` renders **two roots**:
+`Aurora` renders **two roots**, both `position:fixed`, `z-index:0`,
+`pointer-events:none`, behind content (`main` is `z-index:1`).
 
-**A) `.aurora` — fixed, behind content (`z-index:0`, `pointer-events:none`):**
-- `.aurora__wash` — a static grayscale gradient wash (3 soft radial glows in
-  `--aurora-tint`): the "perfect subtle gradient" base.
-- `.aurora__sig` — the cursive **"cyberkunju" signature**: a real Sacramento
-  script outline (baked path data — no runtime font dep) traced via
-  `stroke-dashoffset`, penned slowly, faint (0.12), then it fades and re-signs
-  at a random spot. Stroke is the ember gradient with a gentle SMIL flow.
-  Hidden under reduced motion.
-- `.aurora__grain` — filmic noise at 0.05.
+### A) `.aurora` — static ambient layer
 
-**B) `.aurora-scroll` — fixed viewport clip holding the interactive
-tessellation** (translated by `-scrollY` so it scrolls with the page without
-inflating page height):
-- An SVG (`.aurora__tess`) whose `<g class="aurora__cells">` is filled by JS
-  with an **irregular quadrilateral mesh** — a jittered grid of points where 4
-  quads meet at each vertex. Faint strokes draw the tiling.
-- The mesh **re-randomizes on every refresh** (and on resize) — intended.
-- A few random tiles **start lit** in the ember accent.
-- **Clicking** a tile toggles it red and it **stays** (global click listener +
-  point-in-polygon in page coordinates; ignores clicks on real interactive
-  elements; the layer is `pointer-events:none` so nothing is blocked).
-- The top-left **wordmark is centered on a chosen top-left tile** (the Aurora JS
-  computes a tile centroid and nudges `.brand` via `transform`; re-applied on
-  font load and resize).
+- **`.aurora__wash`** — a static grayscale gradient wash: three stacked radial
+  glows in `rgba(var(--aurora-tint), a)` (`--aurora-tint = 240,240,240` dark /
+  `10,10,10` light):
+  - `radial-gradient(125% 85% at 50% -12%, …0.08, transparent 58%)` — top-center light
+  - `radial-gradient(85% 75% at 12% 108%, …0.055, transparent 55%)` — bottom-left grounding
+  - `radial-gradient(70% 70% at 100% 45%, …0.035, transparent 60%)` — right mid
+- **`.aurora__grain`** — filmic noise: inline SVG `feTurbulence`
+  `type="fractalNoise" baseFrequency="0.9" numOctaves="2"`, at `opacity: 0.05`.
+
+> There is **no** cursive signature, no click-to-toggle, and no random-lit
+> tiles. Those were removed. The only colour on the mesh is the top/bottom band.
+
+### B) `.aurora-scroll` — the jittered quad mesh
+
+A fixed viewport clip holding an SVG (`.aurora__tess`) whose
+`<g class="aurora__cells">` is filled by JS with an **irregular quadrilateral
+mesh** (4 quads meet at each vertex). The SVG is `translate3d(0,-scrollY,0)` so
+it scrolls with the page without inflating page height.
+
+**Geometry (exact):**
+- Grid unit `--cell: 78px`; jitter `jit = cell * 0.36 = 28.08px`.
+- `cols = ceil((vw + 2·cell)/cell)`, `originX = -cell`. One overflow column per side.
+- Rows are made **commensurate with page height** so both `y=0` and `y=docH`
+  land on grid lines (even top/bottom bands): `rowsN = round(docH/cell)`,
+  `cellY = docH/rowsN`, `originY = -cellY`, `rows = rowsN + 2`.
+- Each point `P[i][j] = (originX + i·cell ± jit, originY + j·cellY ± jit)` with
+  fresh `Math.random` jitter → the mesh **re-randomizes on every load/resize**.
+
+**Colour / band:**
+- `.aurora__tess polygon` defaults to `stroke: rgba(var(--aurora-tint),0.15)`,
+  `stroke-width:1`, and `fill: url(#tessPop) #ff4d3a` with **`fill-opacity:0`**
+  (so most tiles show only their faint stroke).
+- **`#tessPop`** linear gradient (top-left → bottom-right):
+  `#c1121f` @0 → `#ff4d3a` @0.5 → `#ff6a4a` @1.
+- **Band rule:** a tile is lit to `fill-opacity: 0.5` (`MAXO`) only when its
+  centroid is within `DEPTH = cellY` (one row) of the top **or** bottom edge:
+  `min(cy, docH − cy) < DEPTH`. No left/right sides. So the visible red is the
+  `#tessPop` ramp at 50% over black; darker patches are tiles sampling the deep
+  `#c1121f` end. Fade transition: `fill-opacity 340ms ease`.
+
+**Pinned logo cell:**
+- Derived from the measured `.brand` box → columns `cA…cB`, row `lj`. Those
+  boundary points are overwritten with a deterministic `sin`-hash `fs(n)`, so
+  the merged shape is **identical every load** yet shares points with (tiles
+  cleanly into) its neighbours. The cells are merged into one `<polygon>` (no
+  internal divider), lit at `0.5`. The wordmark is centred on that polygon's
+  centroid via `transform`, nudged `8px` left (`nudgeX`).
+
+**Rebuild triggers:** initial load, `document.fonts.ready`, `resize`, and a
+`ResizeObserver` on `body` — debounced 250ms.
 
 ### Tunables (in `Aurora.astro`)
 
 | Want to change | Where |
 |---|---|
-| Tile size | `--cell` on `.aurora` (currently `92px`) — JS reads it |
-| Irregularity | `jit = cell * 0.36` in the script |
-| How many tiles start lit | `const lit = Math.min(6, ...)` in `build()` |
-| Where the wordmark sits | `anchor = [110, 56]` + the top-left search bounds in `build()` |
-| Tile stroke visibility | `.aurora__tess polygon { stroke: rgba(var(--aurora-tint), 0.15) }` in the **`is:global`** block |
-| Tile pop look | `@keyframes tess-pop` (global block) |
-| Signature size/opacity/speed | `.aurora__sig` width/opacity + `sig-fade`/`sig-write` keyframes + the loop timing in the script |
+| Tile size | `--cell` on `.aurora` (currently `78px`) — JS reads it |
+| Irregularity | `jit = cell * 0.36` in `build()` |
+| Band depth | `DEPTH = cellY` (one row) in `build()` |
+| Band opacity | `MAXO = 0.5` in `build()` |
+| Band colours | `#tessPop` gradient stops in the SVG `<defs>` |
+| Logo cell shape | the `fs(n)` hash + `sideX`/`padX` math in the logo-pin block |
+| Wordmark offset | `nudgeX = 8` in `build()` |
+| Tile stroke visibility | `.aurora__tess polygon { stroke: rgba(var(--aurora-tint),0.15) }` in the **`is:global`** block |
 | Wash intensity | `.aurora__wash` radial alphas |
 | Grain intensity | `.aurora__grain` opacity |
 
