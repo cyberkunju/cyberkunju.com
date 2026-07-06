@@ -167,28 +167,31 @@ main {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  /* Static glossy embossed pitch-black wordmark (no animation). The fill stays
-     pure black through ~90% of the glyph height so it always reads black; a
-     thin bright sheen catches the top edge and a faint bounce warms the
-     baseline — the way light sits on a real glossy black surface. */
+  /* Black-glass wordmark lit by the red aurora. Instead of a neutral black that
+     reads dead on the red band, the letters behave like polished black glass
+     sitting in the site's red light: a hot rose specular catches the top edge,
+     the body stays pitch black, and a warm ember tone bounces at the baseline —
+     all drawn from the accent palette so the mark belongs to the band. */
   background: linear-gradient(
     180deg,
-    #74747d 0%,
-    #101015 9%,
-    #000 34%,
-    #000 74%,
-    #1c1c22 92%,
-    #060608 100%
+    var(--acc-3) 0%,
+    #3a100c 8%,
+    #060203 30%,
+    #000 55%,
+    #000 80%,
+    #2a0c08 100%
   );
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   color: transparent;
-  /* Raised emboss: a faint light rim on the top edge and a soft dark drop below
-     make the letters sit proud of the red; the sub-pixel blur rounds the sharp
-     monospace corners for a softer, more natural bevel. */
-  filter: blur(0.3px) drop-shadow(0 -0.5px 0.5px rgba(255, 255, 255, 0.22))
-    drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.6));
+  /* Emboss + aurora glow: a warm rose rim on the top edge, a soft dark drop for
+     raised depth, and a low red halo that makes the letters read as embedded in
+     and backlit by the band. Sub-pixel blur rounds the sharp monospace corners.
+     Glow colours come from the accent tokens so light/dark themes stay matched. */
+  filter: blur(0.3px) drop-shadow(0 -0.5px 0.4px color-mix(in srgb, var(--acc-3) 60%, transparent))
+    drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.7))
+    drop-shadow(0 0 7px color-mix(in srgb, var(--accent) 32%, transparent));
 }
 
 .site-footer__inner {
