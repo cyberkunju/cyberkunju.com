@@ -146,6 +146,16 @@
     stroke-width: 0.6;
     stroke-linejoin: round;
   }
+  /* The single facet directly behind the wordmark. Its fill is a CSS variable
+     so it can be recoloured/tested from one place — override --logo-cell-fill
+     on :root (e.g. live in devtools) to try any colour. This author rule wins
+     over the inline presentation fill the build sets as a fallback. */
+  :root {
+    --logo-cell-fill: rgb(206, 42, 33);
+  }
+  .aurora__tess polygon.aurora__logo-cell {
+    fill: var(--logo-cell-fill);
+  }
 </style>
 
 <script is:inline>
@@ -420,6 +430,9 @@
               'fill',
               redFill(Math.max(Math.min(Math.min(sy, docH - sy) / BAR, 1), 0) * 0.55, 0.12),
             );
+            // Tag it so its colour is controllable from one CSS variable
+            // (--logo-cell-fill) — the inline fill above is just the fallback.
+            merged.setAttribute('class', 'aurora__logo-cell');
             cellsG.appendChild(merged);
             // Centre the wordmark on the shape's centroid (both axes).
             const nudgeX = 8; // shift the wordmark slightly left of the centroid
