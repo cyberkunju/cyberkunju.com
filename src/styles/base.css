@@ -5,6 +5,11 @@ body {
   font-size: var(--step-0);
   color: var(--text);
   background: var(--bg);
+  /* Sticky-footer column so the footer always sits at the document bottom,
+     where the Aurora ruby band is painted. */
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
   transition:
     background-color var(--dur) var(--ease),
     color var(--dur) var(--ease);
@@ -119,6 +124,7 @@ h3 {
 main {
   position: relative;
   z-index: 1;
+  flex: 1 0 auto; /* grow to push the footer onto the bottom band */
 }
 
 .container-narrow {
@@ -173,27 +179,32 @@ main {
   aspect-ratio: 1707 / 159;
 }
 
+/* .grad-text accents are styled by the shared gradient rule above. */
+
+/* The footer rides inside the Aurora ruby band at the very bottom of the page:
+   no divider line, its row height matches the band (BAR = 74px), and its text
+   is a soft white that reads on the red. */
+.site-footer {
+  position: relative;
+  z-index: 1;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: var(--step--1);
+}
+
 .site-footer__inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-md);
-  min-height: 3.5rem;
+  min-height: 74px;
 }
 
-/* .grad-text accents are styled by the shared gradient rule above. */
-
-.site-footer {
-  position: relative;
-  z-index: 1;
-  margin-block-start: var(--space-3xl);
-  border-block-start: var(--border-width) solid var(--border);
-  color: var(--text-muted);
-  font-size: var(--step--1);
+.site-footer a {
+  color: rgba(255, 255, 255, 0.92);
+  transition: color var(--dur-fast) var(--ease);
 }
-
-.site-footer__inner {
-  padding-block: var(--space-lg);
+.site-footer a:hover {
+  color: #fff;
 }
 
 /* --- Components --- */
