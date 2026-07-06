@@ -167,56 +167,28 @@ main {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  /* Glossy pitch-black wordmark. The body is essentially flat black (only a
-     hair of curve so it reads like a solid glossy surface, not gray), and a
-     soft wide specular reflection drifts slowly across like light on a piano
-     lid. Both layers are clipped to the text. NOTE: in the `background`
-     shorthand the FIRST layer paints on top, so the sheen must be listed
-     first — otherwise the opaque black body hides it and it never shows. */
-  background:
-    linear-gradient(100deg, transparent 34%, rgba(255, 255, 255, 0.5) 50%, transparent 66%),
-    linear-gradient(180deg, #0d0d11 0%, #000 24%, #000 100%);
-  background-size:
-    260% 100%,
-    100% 100%;
-  background-position:
-    var(--sheen) 0,
-    0 0;
-  background-repeat: no-repeat;
+  /* Static glossy embossed pitch-black wordmark (no animation). The fill stays
+     pure black through ~90% of the glyph height so it always reads black; a
+     thin bright sheen catches the top edge and a faint bounce warms the
+     baseline — the way light sits on a real glossy black surface. */
+  background: linear-gradient(
+    180deg,
+    #74747d 0%,
+    #101015 9%,
+    #000 34%,
+    #000 74%,
+    #1c1c22 92%,
+    #060608 100%
+  );
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   color: transparent;
-  /* Soft raised emboss + rounded edges: drop-shadows follow the glyph alpha
-     (so the light bevel/dark drop hug the letter shape and blur soft), and the
-     sub-pixel blur rounds the sharp monospace corners. */
-  filter: blur(0.35px) drop-shadow(0 -1px 0.5px rgba(255, 255, 255, 0.2))
-    drop-shadow(0 1.5px 2px rgba(0, 0, 0, 0.55));
-  animation: brand-sheen 8s ease-in-out infinite;
-}
-
-/* The moving glass reflection: holds pitch-black at each end, drifts slowly
-   across the middle of the cycle. */
-@property --sheen {
-  syntax: "<percentage>";
-  inherits: false;
-  initial-value: 135%;
-}
-@keyframes brand-sheen {
-  0%,
-  26% {
-    --sheen: 135%;
-  }
-  74%,
-  100% {
-    --sheen: -35%;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .brand {
-    animation: none;
-    --sheen: 50%;
-  }
+  /* Raised emboss: a faint light rim on the top edge and a soft dark drop below
+     make the letters sit proud of the red; the sub-pixel blur rounds the sharp
+     monospace corners for a softer, more natural bevel. */
+  filter: blur(0.3px) drop-shadow(0 -0.5px 0.5px rgba(255, 255, 255, 0.22))
+    drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.6));
 }
 
 .site-footer__inner {
