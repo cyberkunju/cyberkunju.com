@@ -160,55 +160,31 @@ main {
 
 .brand {
   display: inline-block;
-  /* Wordmark matched to the ruby bar: Pally 900 caps pressed into the red
-     facet as dark glass — a near-black, red-tinted ink fill, a soft emboss
-     (thin warm light catch below, tight dark halo above) and a slow dim
-     sheen gliding across the gloss. The fill is the base layer; the sheen
-     rides on top (first background layer = on top) and is what the
-     animation drives. */
-  font-family: var(--font-sans);
-  font-size: 22px;
-  font-weight: 900;
-  letter-spacing: -0.05em;
+  /* Glossy-red techno wordmark (Oxanium), matched to the reference: a bright
+     coral specular at the top melts through saturated red into deep maroon,
+     clipped to the letters, with a light top bevel, a dark under-edge, a short
+     extrude and a soft drop so the glyphs read raised and glassy on the band. */
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
-  background:
-    linear-gradient(165deg, transparent 33.5%, rgba(255, 132, 104, 0.26) 50%, transparent 66.5%),
-    linear-gradient(180deg, #2a1210 0%, #120807 40%, #060303 100%);
-  background-size:
-    260% 100%,
-    100% 100%;
-  background-repeat: no-repeat;
-  background-position:
-    160% 0,
-    0 0;
+  background: linear-gradient(
+    180deg,
+    #ffc1b2 0%,
+    #ff6a4f 24%,
+    #ee2a1b 52%,
+    #b3121a 80%,
+    #7c0d14 100%
+  );
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   color: transparent;
-  filter: drop-shadow(0 1px 0 rgba(255, 158, 134, 0.22))
-    drop-shadow(0 -1px 0.6px rgba(0, 0, 0, 0.45)) drop-shadow(0 2px 3px rgba(0, 0, 0, 0.35));
-  animation: brand-sheen 9s linear infinite;
-}
-@keyframes brand-sheen {
-  from {
-    background-position:
-      160% 0,
-      0 0;
-  }
-  to {
-    background-position:
-      -60% 0,
-      0 0;
-  }
-}
-/* Freeze the sheen for users who prefer reduced motion. */
-@media (prefers-reduced-motion: reduce) {
-  .brand {
-    animation: none;
-    background-position:
-      50% 0,
-      0 0;
-  }
+  -webkit-text-stroke: 0.5px rgba(110, 10, 16, 0.5);
+  filter: drop-shadow(0 -0.5px 0.4px rgba(255, 214, 202, 0.7))
+    drop-shadow(0 1px 0.6px rgba(84, 6, 11, 0.85)) drop-shadow(0.5px 1.2px 0 rgba(70, 6, 10, 0.5))
+    drop-shadow(0 2px 4px rgba(0, 0, 0, 0.42));
 }
 
 .site-footer__inner {

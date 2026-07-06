@@ -144,7 +144,7 @@
 
     <script is:inline>
       const DEFAULTS = {
-        text: "CYBERKUNJU", font: "mono", size: 44, weight: 700, tracking: 0.08,
+        text: "CYBERKUNJU", font: "oxanium", size: 44, weight: 700, tracking: 0.08,
         transform: "uppercase", opacity: 1,
         fillMode: "gradient", solid: "#0a0a0a", gradAngle: 180,
         stops: [
@@ -164,7 +164,7 @@
       const FIELDS = [
         ["Text", [
           ["text", "Text", "text"],
-          ["font", "Font", "select", { opts: [["mono", "Mono"], ["sans", "Sans (Pally)"], ["serif", "Serif"]] }],
+          ["font", "Font", "select", { opts: [["oxanium", "Oxanium"], ["chakra", "Chakra Petch"], ["quantico", "Quantico"], ["orbitron", "Orbitron"], ["rajdhani", "Rajdhani"], ["syncopate", "Syncopate"], ["audiowide", "Audiowide"], ["michroma", "Michroma"], ["aldrich", "Aldrich"], ["sans", "Pally"], ["mono", "Mono"], ["serif", "Serif"]] }],
           ["size", "Size", "range", { min: 12, max: 120, step: 1, unit: "px" }],
           ["weight", "Weight", "range", { min: 100, max: 900, step: 100 }],
           ["tracking", "Letter-spacing", "range", { min: -0.05, max: 0.5, step: 0.005, unit: "em" }],
@@ -243,9 +243,30 @@
       const r2 = (n) => +(+n).toFixed(2);
 
       const FAM = {
+        oxanium: '"Oxanium", sans-serif',
+        chakra: '"Chakra Petch", sans-serif',
+        quantico: '"Quantico", sans-serif',
+        orbitron: '"Orbitron", sans-serif',
+        rajdhani: '"Rajdhani", sans-serif',
+        syncopate: '"Syncopate", sans-serif',
+        audiowide: '"Audiowide", cursive',
+        michroma: '"Michroma", sans-serif',
+        aldrich: '"Aldrich", sans-serif',
         mono: 'ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace',
         sans: '"Pally", ui-sans-serif, system-ui, -apple-system, sans-serif',
         serif: 'Georgia, "Times New Roman", serif',
+      };
+      // Google Fonts families to load into the framed site when picked.
+      const GFONT = {
+        oxanium: "Oxanium:wght@500;600;700;800",
+        chakra: "Chakra+Petch:wght@500;600;700",
+        quantico: "Quantico:wght@700",
+        orbitron: "Orbitron:wght@600;700;800;900",
+        rajdhani: "Rajdhani:wght@600;700",
+        syncopate: "Syncopate:wght@700",
+        audiowide: "Audiowide",
+        michroma: "Michroma",
+        aldrich: "Aldrich",
       };
 
       function fillString() {
@@ -339,6 +360,14 @@
         let st = doc.getElementById("brandlab-override");
         if (!st) { st = doc.createElement("style"); st.id = "brandlab-override"; doc.head.appendChild(st); }
         st.textContent = css;
+        // Load the chosen webfont into the framed site so the override renders.
+        const g = GFONT[cfg.font];
+        if (g) {
+          let fl = doc.getElementById("brandlab-font");
+          if (!fl) { fl = doc.createElement("link"); fl.id = "brandlab-font"; fl.rel = "stylesheet"; doc.head.appendChild(fl); }
+          const href = `https://fonts.googleapis.com/css2?family=${g}&display=swap`;
+          if (fl.getAttribute("href") !== href) fl.setAttribute("href", href);
+        }
         const b = doc.querySelector(".brand");
         if (b && cfg.text && b.textContent !== cfg.text) b.textContent = cfg.text;
       }
