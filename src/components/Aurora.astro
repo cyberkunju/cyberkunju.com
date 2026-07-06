@@ -152,7 +152,20 @@
   (() => {
     if (window.__aurora) return;
     window.__aurora = true;
-    const rand = (min, max) => Math.random() * (max - min) + min;
+    // Deterministic per-load RNG. The mesh is seeded once per page load and each
+    // point's jitter is a pure hash of its grid coords + seed, so every rebuild
+    // (fonts settling, ResizeObserver, resize) reproduces the SAME shape instead
+    // of reshuffling — no jarring double re-carve. A fresh seed each load still
+    // gives a new layout on refresh.
+    const seed = (Math.random() * 4294967296) >>> 0;
+    const hash01 = (i, j, k) => {
+      let h =
+        (seed ^ Math.imul(i | 0, 374761393) ^ Math.imul(j | 0, 668265263) ^ Math.imul(k | 0, 2246822519)) >>> 0;
+      h = Math.imul(h ^ (h >>> 13), 1274126177) >>> 0;
+      h ^= h >>> 16;
+      return (h >>> 0) / 4294967296;
+    };
+    const hrand = (i, j, k, min, max) => min + hash01(i, j, k) * (max - min);
 
     const start = () => {
       // Faceted triangular tessellation: a jittered grid of points, each cell
@@ -206,9 +219,9 @@
             P[i] = [];
             for (let j = 0; j < Ys.length; j++) {
               P[i][j] = [
-                originX + i * cell + rand(-jit, jit),
-                Ys[j] + rand(-1, 1) * jyFor(j),
-                rand(-1, 1) * cell * 0.4, // z relief for facet lighting
+                originX + i * cell + hrand(i, j, 1, -jit, jit),
+                Ys[j] + hrand(i, j, 2, -1, 1) * jyFor(j),
+                hrand(i, j, 3, -1, 1) * cell * 0.4, // z relief for facet lighting
               ];
             }
           }
@@ -363,9 +376,10 @@
               const b = P[i + 1][j];
               const c = P[i + 1][j + 1];
               const d = P[i][j + 1];
-              // split each cell on a random diagonal → varied triangulation
+              // split each cell on a diagonal (seeded per cell → varied but
+              // stable across rebuilds within a load)
               const els =
-                Math.random() < 0.5
+                hash01(i, j, 5) < 0.5
                   ? [makeTri(a, b, c), makeTri(a, c, d)]
                   : [makeTri(a, b, d), makeTri(b, c, d)];
               quads[i][j] = { els };
