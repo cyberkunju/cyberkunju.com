@@ -167,17 +167,27 @@ main {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  /* Polished-obsidian wordmark: a deep near-black gradient clipped to the text,
-     with a light lower highlight so the dark letters read (engraved) on the
-     red instead of disappearing. */
-  background: linear-gradient(180deg, #4a4a52 0%, #141417 48%, #060608 60%, #2a2a30 100%);
+  /* Glossy piano-black wordmark. The body is true black; a thin silver
+     catch-light on the top edge and a soft charcoal reflection lower-mid give
+     the polished, wet-gloss sheen instead of a flat gray. Clipped to the text.
+     The white bottom-bevel + dark drop shadow lift the letters off the red. */
+  background: linear-gradient(
+    178deg,
+    #8a8a92 0%,
+    #1a1a1e 13%,
+    #000 43%,
+    #000 55%,
+    #35353d 69%,
+    #050506 86%,
+    #000 100%
+  );
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   color: transparent;
   text-shadow:
-    0 1px 1px rgba(255, 255, 255, 0.3),
-    0 -1px 1px rgba(0, 0, 0, 0.3);
+    0 1px 0 rgba(255, 255, 255, 0.22),
+    0 1px 3px rgba(0, 0, 0, 0.55);
 }
 
 .site-footer__inner {
