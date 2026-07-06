@@ -35,6 +35,11 @@
      DOM order) but below the page content (main is position:relative z-1). -->
 <div class="aurora-grain" aria-hidden="true"></div>
 
+<!-- A single soft light sweep across the whole viewport — the "glossy"
+     reflection. Fixed (not tied to the scrolling mesh) so it reads as glass
+     catching the light rather than a per-facet effect. -->
+<div class="aurora-sheen" aria-hidden="true"></div>
+
 <style>
   .aurora {
     position: fixed;
@@ -87,6 +92,47 @@
     z-index: 0;
     opacity: 0.05;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* The glossy reflection: one big, soft diagonal highlight band that glides
+     slowly across the viewport (independent of scroll/facet position) and
+     blends with "overlay" so it lifts the facets it crosses like light
+     sliding over glass, without recolouring any single tile. */
+  .aurora-sheen {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    mix-blend-mode: overlay;
+    opacity: 0.7;
+    background: linear-gradient(
+      115deg,
+      transparent 32%,
+      rgba(255, 255, 255, 0.14) 47%,
+      rgba(255, 255, 255, 0.22) 50%,
+      rgba(255, 255, 255, 0.14) 53%,
+      transparent 68%
+    );
+    background-size: 260% 100%;
+    background-position: 140% 0;
+    background-repeat: no-repeat;
+    animation: aurora-sheen 16s ease-in-out infinite;
+  }
+  @keyframes aurora-sheen {
+    0%,
+    22% {
+      background-position: 140% 0;
+    }
+    72%,
+    100% {
+      background-position: -60% 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .aurora-sheen {
+      animation: none;
+      background-position: 40% 0;
+    }
   }
 </style>
 
@@ -210,8 +256,11 @@
 
           // --- Facet shading (low-poly relief) ---
           // Every grid point carries a z; each triangle's flat shade is a
-          // single Lambert term against one fixed light, so the whole mesh
-          // reads as one softly lit faceted surface.
+          // single Lambert term against one fixed light, so the mesh reads as
+          // one darker, higher-contrast faceted surface. The "glossy" catch
+          // of light is a separate soft sheen swept across the whole mesh in
+          // CSS (.aurora-sheen below) rather than per-facet specular, which
+          // read as blotchy pale patches instead of a clean reflection.
           const LX = -0.38;
           const LY = -0.55;
           const LZ = 0.85;
@@ -234,21 +283,21 @@
             const nl = Math.hypot(nx, ny, nz) || 1;
             const d = (nx * LX + ny * LY + nz * LZ) / (nl * LLEN);
             // a flat facet gives d ≈ LZ/|L|; spread the deviation into [-1, 1]
-            return Math.max(-1, Math.min(1, (d - LZ / LLEN) * 3.2));
+            return Math.max(-1, Math.min(1, (d - LZ / LLEN) * 4.2));
           };
 
-          // Charcoal facets: a subtle light/dark veil over the page ink, so
-          // the relief adapts to whichever theme sits underneath.
+          // Charcoal facets: a darker diffuse veil over the page ink than
+          // before, so the field reads noticeably deeper/blacker overall.
           const charcoalFill = (s) =>
             s >= 0
-              ? `rgba(244, 246, 252, ${(s * 0.022).toFixed(3)})`
-              : `rgba(0, 0, 4, ${(-s * 0.13).toFixed(3)})`;
+              ? `rgba(244, 246, 252, ${(s * 0.03).toFixed(3)})`
+              : `rgba(0, 0, 4, ${(-s * 0.2).toFixed(3)})`;
 
           // Ruby facets: bright crimson at the page edge → deep blood-red →
-          // swallowed by the page ink, modulated by the facet's Lambert term.
-          // In the light theme the band keeps its brick hue and melts into the
-          // paper via alpha instead of darkening to black (the dark heading
-          // must stay readable on a light page).
+          // swallowed by the page ink, modulated by the facet's diffuse term.
+          // In the light theme the band keeps its brick hue and melts into
+          // the paper via alpha instead of darkening to black (the dark
+          // heading must stay readable on a light page).
           const dark = (() => {
             const t = getComputedStyle(document.documentElement)
               .getPropertyValue('--aurora-tint')
@@ -257,14 +306,12 @@
           })();
           const mix = (a, b, t) => a + (b - a) * t;
           const redFill = (nd, s) => {
-            // keep the facet variation subtle and only ever darker — no pale
-            // light-red pops (highlights are capped tight)
-            const f = 1 + (s >= 0 ? s * 0.06 : s * 0.18);
+            const f = 1 + (s >= 0 ? s * 0.08 : s * 0.24);
             if (!dark) {
               const t = Math.min(nd / 0.6, 1);
-              const r = mix(150, 116, t);
-              const g = mix(40, 28, t);
-              const bl = mix(33, 25, t);
+              const r = mix(160, 116, t);
+              const g = mix(42, 26, t);
+              const bl = mix(34, 24, t);
               const a = nd < 0.45 ? 1 : Math.max(0, 1 - (nd - 0.45) / 0.55);
               return `rgba(${Math.round(r * f)}, ${Math.round(g * f)}, ${Math.round(bl * f)}, ${a.toFixed(3)})`;
             }
@@ -273,14 +320,14 @@
             let bl;
             if (nd < 0.62) {
               const t = nd / 0.62;
-              r = mix(128, 74, t);
-              g = mix(34, 20, t);
-              bl = mix(28, 18, t);
+              r = mix(136, 60, t);
+              g = mix(32, 16, t);
+              bl = mix(26, 13, t);
             } else {
               const t = (nd - 0.62) / 0.38;
-              r = mix(74, 18, t);
-              g = mix(20, 12, t);
-              bl = mix(18, 13, t);
+              r = mix(60, 10, t);
+              g = mix(16, 8, t);
+              bl = mix(13, 9, t);
             }
             return `rgb(${Math.round(r * f)}, ${Math.round(g * f)}, ${Math.round(bl * f)})`;
           };
