@@ -128,6 +128,9 @@ main {
   position: relative;
   z-index: 1;
   flex: 1 0 auto; /* grow to push the footer onto the bottom band */
+  /* Invisible restriction: keep page content clear of the bottom ruby band /
+     footer so nothing crowds or overlaps it. */
+  padding-block-end: var(--space-3xl);
 }
 
 .container-narrow {
