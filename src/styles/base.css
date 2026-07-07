@@ -6,8 +6,11 @@ body {
   color: var(--text);
   background: var(--bg);
   /* Sticky-footer column so the footer always sits at the document bottom,
-     where the Aurora ruby band is painted. */
-  min-height: 100svh;
+     where the Aurora ruby band is painted. Use dvh (not svh) so the document
+     height matches the viewport Aurora measures with window.innerHeight —
+     otherwise the band is drawn below where the footer ends and the text
+     floats above the red on tall screens / mobile. */
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   transition:
