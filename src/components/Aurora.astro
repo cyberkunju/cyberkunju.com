@@ -404,15 +404,20 @@
           // points, so no gap and no overlap.
           if (logo) {
             const { cA, cB, lj } = logo;
+            // Keep the logo-cell facets as individual triangles (so their seams
+            // show and the texture matches the faceted black field) and just
+            // recolour them via --logo-cell-fill — rather than merging into one
+            // flat block. The opaque logo image hides the interior seams; the
+            // ones in the letter gaps read like the rest of the mesh.
             for (let c = cA; c < cB; c++) {
               if (quads[c] && quads[c][lj]) {
-                for (const el of quads[c][lj].els) cellsG.removeChild(el);
+                for (const el of quads[c][lj].els) el.setAttribute('class', 'aurora__logo-cell');
               }
             }
+            // Centre the wordmark on the region's centroid (both axes).
             const outline = [];
-            for (let c = cA; c <= cB; c++) outline.push(P[c][lj]); // top edge L→R
-            for (let c = cB; c >= cA; c--) outline.push(P[c][lj + 1]); // bottom edge R→L
-            // Centre of the shape — for its ruby shade and the wordmark nudge.
+            for (let c = cA; c <= cB; c++) outline.push(P[c][lj]);
+            for (let c = cB; c >= cA; c--) outline.push(P[c][lj + 1]);
             let sx = 0;
             let sy = 0;
             for (let k = 0; k < outline.length; k++) {
@@ -421,20 +426,6 @@
             }
             sx /= outline.length;
             sy /= outline.length;
-            const merged = document.createElementNS(NS, 'polygon');
-            merged.setAttribute(
-              'points',
-              outline.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' '),
-            );
-            merged.setAttribute(
-              'fill',
-              redFill(Math.max(Math.min(Math.min(sy, docH - sy) / BAR, 1), 0) * 0.55, 0.12),
-            );
-            // Tag it so its colour is controllable from one CSS variable
-            // (--logo-cell-fill) — the inline fill above is just the fallback.
-            merged.setAttribute('class', 'aurora__logo-cell');
-            cellsG.appendChild(merged);
-            // Centre the wordmark on the shape's centroid (both axes).
             const nudgeX = 8; // shift the wordmark slightly left of the centroid
             brand.style.transform = `translate(${(sx - logo.cx - nudgeX).toFixed(1)}px, ${(sy - logo.cy).toFixed(1)}px)`;
           }
