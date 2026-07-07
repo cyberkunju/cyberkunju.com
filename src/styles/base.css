@@ -187,16 +187,23 @@ main {
 .site-footer {
   position: relative;
   z-index: 1;
+  /* An invisible boundary above the footer — reserves the separation without a
+     visible rule. */
+  border-block-start: 1px solid transparent;
   color: rgba(255, 255, 255, 0.82);
   font-size: var(--step--1);
 }
 
+/* Full-bleed: the copyright hugs the left edge and the social links the right,
+   at every viewport width (not constrained to the centred content container). */
 .site-footer__inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-md);
+  width: 100%;
   min-height: 74px;
+  padding-inline: var(--space-lg);
 }
 
 .site-footer a {
