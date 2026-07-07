@@ -201,6 +201,12 @@
 
         const build = () => {
           const vw = window.innerWidth;
+          // Collapse the mesh before measuring so its own (absolutely-positioned)
+          // height doesn't inflate scrollHeight. Otherwise docH = max(...) can
+          // only ever grow: a tall mesh keeps scrollHeight tall, so once docH
+          // overshoots the real content it never shrinks back, leaving scroll
+          // space (and the bottom band) stranded below the footer.
+          svg.style.height = '0px';
           const docH = Math.max(document.documentElement.scrollHeight, window.innerHeight);
           svg.style.width = '100%';
           svg.style.height = docH + 'px';
